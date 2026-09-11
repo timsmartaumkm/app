@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "start": "node .output/server/index.mjs",
     "preview": "node .output/server/index.mjs",
+    "seed": "node scripts/seed.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
