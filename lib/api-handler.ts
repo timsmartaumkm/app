@@ -337,10 +337,22 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       const { email, password } = body;
 
       const cleanEmail = String(email || "").toLowerCase().trim();
-      const isDemoLogin = cleanEmail === "demo@smartaumkm.id";
+      let isDemoLogin = cleanEmail === "demo@smartaumkm.id";
 
       await initDatabase(isDemoLogin);
-      const rows = await query<UserRow[]>("SELECT * FROM users WHERE email = ?", [cleanEmail], isDemoLogin);
+      let rows = await query<UserRow[]>("SELECT * FROM users WHERE email = ?", [cleanEmail], isDemoLogin);
+
+      // If not found in primary DB (e.g. admin demo account seeded in demo DB), check demo DB as fallback
+      if (rows.length === 0 && !isDemoLogin) {
+        try {
+          await initDatabase(true);
+          const demoRows = await query<UserRow[]>("SELECT * FROM users WHERE email = ?", [cleanEmail], true);
+          if (demoRows.length > 0) {
+            rows = demoRows;
+            isDemoLogin = true;
+          }
+        } catch (e) {}
+      }
 
       if (rows.length === 0) {
         return jsonResponse({ error: "Email atau password salah." }, 401);
