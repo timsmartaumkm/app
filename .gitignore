@@ -32,3 +32,5 @@ dist-ssr
 *.sw?
 
 .env.local
+scripts/seed-prod.mjs
+scripts/seed-prod.*

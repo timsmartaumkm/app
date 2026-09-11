@@ -23,17 +23,19 @@ function loadEnvFile() {
 loadEnvFile();
 
 export function getDbConfig(isDemo = false) {
-  const host = process.env["DB_HOST"];
-  const portStr = process.env["DB_PORT"];
-  const user = process.env["DB_USER"];
-  const password = process.env["DB_PASSWORD"];
+  const host = isDemo ? (process.env["DB_DEMO_HOST"] || process.env["DB_HOST"]) : process.env["DB_HOST"];
+  const portStr = isDemo ? (process.env["DB_DEMO_PORT"] || process.env["DB_PORT"]) : process.env["DB_PORT"];
+  const user = isDemo ? (process.env["DB_DEMO_USER"] || process.env["DB_USER"]) : process.env["DB_USER"];
+  const password = isDemo
+    ? (process.env["DB_DEMO_PASSWORD"] !== undefined ? process.env["DB_DEMO_PASSWORD"] : process.env["DB_PASSWORD"])
+    : process.env["DB_PASSWORD"];
   const database = isDemo ? (process.env["DB_DEMO_NAME"] || process.env["DB_NAME"]) : process.env["DB_NAME"];
 
   const missing: string[] = [];
-  if (!host) missing.push("DB_HOST");
-  if (!portStr) missing.push("DB_PORT");
-  if (!user) missing.push("DB_USER");
-  if (password === undefined) missing.push("DB_PASSWORD");
+  if (!host) missing.push(isDemo ? "DB_DEMO_HOST or DB_HOST" : "DB_HOST");
+  if (!portStr) missing.push(isDemo ? "DB_DEMO_PORT or DB_PORT" : "DB_PORT");
+  if (!user) missing.push(isDemo ? "DB_DEMO_USER or DB_USER" : "DB_USER");
+  if (password === undefined) missing.push(isDemo ? "DB_DEMO_PASSWORD or DB_PASSWORD" : "DB_PASSWORD");
   if (!database) missing.push(isDemo ? "DB_DEMO_NAME or DB_NAME" : "DB_NAME");
 
   if (missing.length > 0) {

@@ -22,20 +22,20 @@ function loadEnvFile() {
 }
 loadEnvFile();
 
-const DB_HOST = process.env.DB_HOST;
-const DB_PORT = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306;
-const DB_USER = process.env.DB_USER;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const DB_DEMO_NAME = process.env.DB_DEMO_NAME;
+const DB_HOST = process.env.DB_DEMO_HOST || process.env.DB_HOST;
+const DB_PORT = process.env.DB_DEMO_PORT ? parseInt(process.env.DB_DEMO_PORT, 10) : (process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306);
+const DB_USER = process.env.DB_DEMO_USER || process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_DEMO_PASSWORD !== undefined ? process.env.DB_DEMO_PASSWORD : process.env.DB_PASSWORD;
+const DB_DEMO_NAME = process.env.DB_DEMO_NAME || process.env.DB_NAME;
 const UPLOAD_DEMO_DIR = process.env.UPLOAD_DEMO_DIR || "public/uploads/demo";
 
 if (!DB_HOST || !DB_USER || DB_PASSWORD === undefined || !DB_DEMO_NAME) {
-  console.error("Error: Missing required database environment variables (DB_HOST, DB_USER, DB_PASSWORD, DB_DEMO_NAME).");
+  console.error("Error: Missing required database environment variables (DB_DEMO_HOST/DB_HOST, DB_DEMO_USER/DB_USER, DB_DEMO_PASSWORD/DB_PASSWORD, DB_DEMO_NAME).");
   process.exit(1);
 }
 
 async function cleanDemo() {
-  console.log(`--- Cleaning Demo Data on '${DB_DEMO_NAME}' ---`);
+  console.log(`--- Cleaning Demo Data on '${DB_DEMO_NAME}' (User: ${DB_USER}) ---`);
 
   // 1. Clean Database
   try {
