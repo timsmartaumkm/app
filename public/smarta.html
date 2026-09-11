@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SMARTA UMKM — Catat Keuangan, Tingkatkan Keuntungan</title>
+<meta name="description" content="SMARTA UMKM membantu pemilik usaha dagang & jasa mencatat keuangan, memisahkan keuangan pribadi dari usaha, dan menganalisa laba rugi secara otomatis." />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --dark-green:#064D2C; --deep-green:#0B5733; --green:#1F7A4C; --lime:#9ACD32;
+  --gold:#F2B927; --cream:#E8E8D8; --white:#FFFFFF; --black:#111111; --red:#D9534F;
+  --bg-app:#F7F7F0; --muted:#6B7A72; --line:#E4E4D6;
+  --r-sm:8px; --r:12px; --r-lg:18px; --r-xl:26px;
+  --sh-1:0 1px 2px rgba(6,77,44,.06),0 4px 14px rgba(6,77,44,.06);
+  --sh-2:0 10px 30px rgba(6,77,44,.12);
+  --sidebar-w:260px;
+  --font:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --serif:"Playfair Display",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden}
+body{font-family:var(--font);color:var(--black);background:var(--bg-app);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,h4{margin:0}
+.serif{font-family:var(--serif)}
+.hidden{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.muted{color:var(--muted)}
+.center{text-align:center}
+.row{display:flex;align-items:center;gap:10px}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.grow{flex:1;min-width:0}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt8{margin-top:8px}.mt16{margin-top:16px}.mt24{margin-top:24px}.mt32{margin-top:32px}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:999px;
+  padding:11px 20px;font-weight:600;font-size:14px;cursor:pointer;transition:.18s ease;background:transparent;line-height:1.2}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-gold{background:var(--gold);color:#3a2c00}
+.btn-gold:hover:not(:disabled){background:#ffc93c;transform:translateY(-1px)}
+.btn-green{background:var(--deep-green);color:#fff}
+.btn-green:hover:not(:disabled){background:var(--green)}
+.btn-outline{border-color:var(--line);background:var(--white);color:var(--black)}
+.btn-outline:hover:not(:disabled){border-color:var(--green);color:var(--deep-green)}
+.btn-ghost-light{border-color:rgba(255,255,255,.45);color:#fff}
+.btn-ghost-light:hover{background:rgba(255,255,255,.12)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover:not(:disabled){background:#c9433f}
+.btn-sq{border-radius:var(--r)}
+.btn-sm{padding:7px 13px;font-size:13px}
+.btn-block{width:100%}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--white);cursor:pointer;position:relative;transition:.18s}
+.icon-btn:hover{border-color:var(--green);color:var(--deep-green)}
+.icon-btn .dot{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--red);
+  color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center}
+svg.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+svg.ic-sm{width:16px;height:16px}
+
+/* ---------- Landing ---------- */
+#landing{background:var(--dark-green);color:#fff}
+.land-wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+.nav{position:sticky;top:0;z-index:40;background:rgba(6,77,44,.94);backdrop-filter:blur(10px)}
+.nav-in{display:flex;align-items:center;gap:18px;height:74px}
+.brand-logo{height:34px;width:auto;max-width:44px;object-fit:contain;display:block;flex:0 0 auto;background:var(--white);border-radius:9px;padding:3px}
+@media(max-width:640px){.brand-logo{height:28px}}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:24px;letter-spacing:.06em;color:#fff}
+.brand .mark{width:34px;height:34px;border-radius:9px;background:var(--white);display:grid;place-items:center;color:var(--deep-green)}
+.nav-links{display:flex;gap:26px;margin-left:26px;padding-bottom:6px;border-bottom:2px solid var(--gold)}
+.nav-links a{font-weight:600;font-size:15px;opacity:.95}
+.nav-links a:hover{color:var(--gold)}
+.nav-act{margin-left:auto;display:flex;gap:10px}
+.nav-toggle{display:none;margin-left:auto;background:none;border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:7px;color:#fff}
+.hero{position:relative;padding:44px 0 70px;overflow:hidden}
+.hero:before{content:"";position:absolute;width:760px;height:760px;border-radius:50%;right:-260px;top:-160px;
+  background:radial-gradient(circle at 30% 30%,rgba(154,205,50,.20),transparent 62%)}
+.hero:after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;left:-180px;bottom:-200px;
+  background:radial-gradient(circle at 50% 50%,rgba(31,122,76,.35),transparent 65%)}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:26px;align-items:stretch}
+.hero-card{background:linear-gradient(135deg,var(--green) 0%,#63a83f 55%,var(--lime) 100%);border-radius:var(--r-xl);padding:40px 38px;color:#0d2b1b}
+.hero-card h1{font-family:var(--serif);font-size:44px;line-height:1.12;font-weight:800}
+.hero-card h1 .y{color:var(--gold);display:block}
+.hero-card p{margin:16px 0 26px;max-width:460px;color:#123a26;font-size:15px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.side-card{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:var(--r-xl);padding:20px}
+.badge-gold{display:inline-block;background:var(--gold);color:#3a2c00;font-weight:700;font-size:12px;letter-spacing:.04em;padding:6px 14px;border-radius:8px}
+.mock{margin-top:14px;background:var(--white);border-radius:var(--r-lg);padding:12px;color:var(--black);box-shadow:var(--sh-2)}
+.mock-top{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.mock-top i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}
+.mock-stat{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mock-stat div{background:var(--bg-app);border-radius:10px;padding:9px 11px}
+.mock-stat span{display:block;font-size:10px;color:var(--muted)}
+.mock-stat b{font-size:13px}
+.mock-bars{display:flex;align-items:flex-end;gap:7px;height:74px;margin-top:10px;padding:0 2px}
+.mock-bars i{flex:1;border-radius:4px 4px 0 0;display:block}
+.section{background:#FAFAF3;color:var(--black);padding:64px 0}
+.section.alt{background:var(--white)}
+.eyebrow{color:var(--gold);font-weight:700;letter-spacing:.08em;font-size:15px}
+.section h2{font-family:var(--serif);font-size:31px;margin-top:6px}
+.section .lead{color:var(--muted);margin-top:8px;max-width:520px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:38px}
+.feat{background:#A8CBA4;border-radius:var(--r-lg);padding:20px;transition:.2s}
+.feat:hover{transform:translateY(-4px);box-shadow:var(--sh-2)}
+.feat .fi{width:40px;height:40px;border-radius:10px;background:var(--deep-green);color:var(--gold);display:grid;place-items:center;margin-bottom:14px}
+.feat h3{font-size:16px;margin-bottom:6px}
+.feat p{margin:0;font-size:13.5px;color:#1d3a2a}
+.price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;max-width:820px;margin:40px auto 0}
+.plan{border-radius:var(--r-lg);padding:28px;position:relative}
+.plan.free{background:#D4D4D4;color:var(--black)}
+.plan.pro{background:var(--dark-green);color:#fff}
+.plan .amt{font-size:34px;font-weight:700;line-height:1.1}
+.plan ul{list-style:none;padding:0;margin:20px 0 24px;display:grid;gap:11px}
+.plan li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.plan li svg{color:var(--lime);margin-top:2px}
+.pop{position:absolute;top:-17px;left:50%;transform:translateX(-50%);background:var(--gold);color:#3a2c00;font-weight:700;
+  font-size:13px;padding:7px 20px;border-radius:999px;white-space:nowrap;box-shadow:var(--sh-1)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:38px}
+.step{background:linear-gradient(160deg,#F2F5EE,#E6EFE2);border-radius:var(--r-lg);padding:22px 18px;text-align:center}
+.step .n{width:48px;height:48px;border-radius:50%;background:var(--dark-green);color:#fff;font-size:20px;font-weight:700;
+  display:grid;place-items:center;margin:0 auto 14px}
+.step h3{font-size:15px;margin-bottom:6px}
+.step p{margin:0;font-size:13px;color:var(--muted)}
+.faq{max-width:820px;margin:32px auto 0;display:grid;gap:10px}
+.acc{background:var(--white);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.acc button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;background:none;
+  border:0;text-align:left;font-weight:600;cursor:pointer}
+.acc .bd{padding:0 18px 16px;color:var(--muted);font-size:14px;display:none}
+.acc.open .bd{display:block}
+.acc.open button svg{transform:rotate(180deg)}
+.acc button svg{transition:.2s}
+footer.land-foot{background:linear-gradient(100deg,#04361f,#0B5733 55%,#1F7A4C);color:#fff;padding:38px 0;border-radius:var(--r-xl) var(--r-xl) 0 0}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:24px;align-items:start}
+.foot-grid a{display:block;font-size:13.5px;opacity:.85;margin-bottom:8px}
+.foot-grid a:hover{color:var(--gold)}
+.chat-fab{position:fixed;right:20px;bottom:20px;z-index:60;display:flex;align-items:center;gap:10px}
+.chat-fab .lbl{background:var(--gold);color:#3a2c00;font-weight:600;font-size:12.5px;padding:6px 13px;border-radius:999px}
+.chat-fab .bub{width:52px;height:52px;border-radius:50%;background:var(--white);color:var(--deep-green);display:grid;place-items:center;
+  box-shadow:var(--sh-2);border:0;cursor:pointer}
+.chat-panel{position:fixed;right:20px;bottom:86px;width:min(330px,calc(100vw - 40px));background:var(--white);border-radius:var(--r-lg);
+  box-shadow:var(--sh-2);z-index:60;overflow:hidden;color:var(--black)}
+.chat-panel header{background:var(--deep-green);color:#fff;padding:12px 16px;font-weight:600;font-size:14px}
+.chat-log{max-height:270px;overflow:auto;padding:14px;display:grid;gap:9px;background:var(--bg-app)}
+.chat-msg{max-width:85%;padding:9px 12px;border-radius:12px;font-size:13.5px}
+.chat-msg.bot{background:var(--white);border:1px solid var(--line)}
+.chat-msg.me{background:var(--deep-green);color:#fff;margin-left:auto}
+.chat-in{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.chat-in input{flex:1;border:1px solid var(--line);border-radius:999px;padding:8px 13px;outline:none}
+@media (max-width:560px){.chat-fab .lbl{display:none}}
+
+/* ---------- Auth ---------- */
+.auth-screen{min-height:100vh;display:grid;place-items:center;padding:32px 18px;
+  background:radial-gradient(900px 520px at 20% -10%,rgba(154,205,50,.22),transparent 60%),var(--dark-green)}
+.auth-card{width:100%;max-width:470px;background:var(--white);border-radius:var(--r-xl);padding:32px;box-shadow:var(--sh-2)}
+.auth-card h2{font-family:var(--serif);font-size:26px}
+.demo-hint{background:#F3F7EF;border:1px dashed var(--lime);border-radius:var(--r);padding:11px 14px;font-size:12.5px;color:#2c4a37;margin-top:14px}
+
+/* ---------- Forms ---------- */
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:600;font-size:13.5px;margin-bottom:6px}
+.field .hint{font-size:12px;color:var(--muted);font-weight:400}
+.input,select.input,textarea.input{width:100%;border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;background:var(--white);outline:none;transition:.15s}
+.input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,122,76,.13)}
+textarea.input{min-height:84px;resize:vertical}
+.input.err{border-color:var(--red)}
+.err-msg{color:var(--red);font-size:12.5px;margin-top:5px;display:none}
+.err-msg.show{display:block}
+.req{color:var(--red);font-weight:700}
+.req-note{font-size:12px;color:var(--muted);margin-top:-4px;margin-bottom:12px}
+.pw-wrap{position:relative}
+.pw-wrap .input{padding-right:42px}
+.pw-eye{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:28px;height:28px;border:0;background:transparent;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:0}
+.pw-eye:hover{color:var(--green)}
+.pw-eye svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.field-jenis{position:relative}
+.info-btn{position:absolute;top:0;right:0;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--white);color:var(--green);font-size:12px;font-weight:800;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.info-btn:hover{border-color:var(--green)}
+.info-pop{display:none;position:absolute;top:24px;right:0;z-index:60;width:min(300px,78vw);background:var(--white);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.13);padding:12px;font-size:12.5px;line-height:1.55;color:var(--text)}
+.info-pop b{display:block;margin-bottom:2px}
+.info-pop p{margin:0 0 8px}
+.info-pop p:last-child{margin-bottom:0}
+.field-jenis.open .info-pop{display:block}
+.info-wrap{position:relative;display:inline-flex;flex:none;align-items:center}
+.info-wrap .info-btn{position:static}
+.info-wrap .info-pop{top:26px;left:0;right:auto;max-width:calc(100vw - 32px)}
+.info-wrap.open .info-pop{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.seg{display:flex;gap:8px;border:1px solid var(--line);border-radius:999px;padding:5px;background:var(--white)}
+.seg button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px;font-weight:600;cursor:pointer;color:var(--muted);transition:.15s}
+.seg button.on[data-v="pemasukan"]{background:#E7F4EA;color:var(--green)}
+.seg button.on[data-v="pengeluaran"]{background:#FBEBEA;color:var(--red)}
+.drop{border:2px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;cursor:pointer;background:#FBFBF5}
+.drop:hover{border-color:var(--lime);background:#F6F9F1}
+.prev{margin-top:10px;position:relative;display:inline-block}
+.prev img{max-height:150px;border-radius:var(--r);border:1px solid var(--line)}
+
+/* ---------- App shell ---------- */
+#app{display:none;min-height:100vh}
+#app.on{display:block}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--dark-green);color:#fff;
+  display:flex;flex-direction:column;z-index:50}
+.sb-head{padding:18px 18px 12px;flex-shrink:0}
+.sb-logo{font-family:var(--serif);font-size:20px;letter-spacing:.04em}
+.sb-logo em{color:var(--gold);font-style:normal;font-weight:700;font-family:var(--font);font-size:17px}
+.sb-head hr{border:0;border-top:1px solid rgba(255,255,255,.18);margin:12px 0 0}
+.sb-nav{flex:1;overflow-y:auto;padding:6px 12px 12px;scrollbar-width:thin}
+.sb-nav::-webkit-scrollbar{width:5px}.sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:9px}
+.sb-sec{font-size:11px;letter-spacing:.1em;color:rgba(255,255,255,.55);font-weight:600;margin:18px 0 6px;padding:0 10px;text-transform:uppercase}
+.sb-sec:first-child{margin-top:6px}
+.sb-item{display:flex;align-items:center;gap:11px;height:42px;padding:0 12px;border-radius:11px;color:rgba(255,255,255,.88);
+  font-size:14px;font-weight:500;cursor:pointer;margin-bottom:4px;border:0;background:transparent;width:100%;text-align:left;transition:.15s}
+.sb-item:hover{background:rgba(255,255,255,.09);color:#fff}
+.sb-item.on{background:var(--green);color:#fff;font-weight:600}
+.sb-item svg{opacity:.92}
+.sb-foot{flex-shrink:0;border-top:1px solid rgba(255,255,255,.16);padding:12px}
+.sb-user{display:flex;align-items:center;gap:11px;min-width:0}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--gold);color:#3a2c00;font-weight:700;display:grid;place-items:center;flex:0 0 auto}
+.sb-user b{font-size:13.5px;display:block}
+.sb-user span{font-size:11.5px;color:rgba(255,255,255,.65);display:block}
+.sb-out{margin-top:10px;height:40px;width:100%;border-radius:11px;border:1px solid rgba(255,255,255,.35);background:transparent;
+  color:#fff;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.sb-out:hover{background:rgba(217,83,79,.9);border-color:transparent}
+.scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:45}
+.scrim.on{display:block}
+.main{margin-left:var(--sidebar-w);min-height:100vh;background:var(--bg-app);display:flex;flex-direction:column}
+.topbar{background:var(--white);border-radius:0 0 var(--r-xl) var(--r-xl);padding:16px 32px;display:flex;align-items:center;gap:14px;
+  box-shadow:var(--sh-1);position:sticky;top:0;z-index:30}
+.topbar h1{font-family:var(--serif);font-size:29px;line-height:1.2}
+.burger{display:none;background:none;border:1px solid var(--line);border-radius:10px;padding:7px;cursor:pointer}
+.page{padding:26px 32px 44px;flex:1}
+.page-sub{color:var(--muted);margin:-4px 0 20px}
+.card{background:var(--white);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:20px}
+.card h3{font-size:16px}
+.cards4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.cards3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.cards2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.stat{background:var(--white);border-radius:var(--r-lg);padding:18px;box-shadow:var(--sh-1)}
+.stat .lb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:500}
+.stat .vl{font-family:var(--serif);font-size:27px;font-weight:700;margin-top:8px;line-height:1.15;word-break:break-word}
+.stat .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.vl.pos{color:var(--deep-green)}.vl.neg{color:var(--red)}
+.tone-green{color:var(--green)}.tone-red{color:var(--red)}.tone-gold{color:#b58407}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px}
+.chart-wrap{width:100%;overflow:hidden}
+.chart-wrap svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px}
+.tx{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tx:last-child{border-bottom:0}
+.tx .ti{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto}
+.tx .ti.in{background:#E7F4EA;color:var(--green)}
+.tx .ti.out{background:#FBEBEA;color:var(--red)}
+.tx b{font-size:14px;display:block}
+.tx small{color:var(--muted);font-size:12px}
+.tx .amt{text-align:right;font-weight:600;font-size:14px;white-space:nowrap}
+.tx .amt small{display:block;font-weight:400}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px}
+.pill.usaha{background:#E7F4EA;color:var(--green)}
+.pill.pribadi{background:#FDF3DA;color:#8a6300}
+.pill.trial{background:#FDF3DA;color:#8a6300}
+.pill.active{background:#E7F4EA;color:var(--green)}
+.pill.expired{background:#FBEBEA;color:var(--red)}
+.pill.off{background:#EEE;color:#666}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+th{text-align:left;font-size:12px;letter-spacing:.03em;color:var(--muted);text-transform:uppercase;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.empty{text-align:center;padding:38px 16px;color:var(--muted)}
+.empty svg{width:44px;height:44px;margin:0 auto 12px;stroke:var(--lime)}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.report th,.report td{border-bottom:1px solid var(--line)}
+.report .grp{font-weight:700}
+.report .ind{padding-left:26px}
+.total-bar{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.total-bar div{background:var(--deep-green);color:#fff;border-radius:var(--r);padding:13px 18px;font-weight:700}
+.total-bar div:last-child{text-align:right}
+.interp{background:#E6F0DC;border:1px solid #CBE0B6;border-radius:var(--r-lg);padding:18px}
+.interp .h{background:var(--deep-green);color:#fff;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;display:inline-block}
+.interp ul{padding-left:18px;margin:12px 0 0;font-size:13px;color:#254032}
+.interp li{margin-bottom:7px}
+.toast-wrap{position:fixed;top:18px;right:18px;z-index:100;display:grid;gap:9px;max-width:min(360px,calc(100vw - 36px))}
+.toast{background:var(--white);border-left:4px solid var(--green);border-radius:var(--r);padding:12px 15px;box-shadow:var(--sh-2);
+  font-size:13.5px;animation:slide .22s ease}
+.toast.error{border-left-color:var(--red)}
+.toast.info{border-left-color:var(--gold)}
+@keyframes slide{from{opacity:0;transform:translateX(18px)}}
+.modal-bg{position:fixed;inset:0;background:rgba(10,30,20,.55);z-index:90;display:grid;place-items:center;padding:18px;overflow:auto}
+.modal{background:var(--white);border-radius:var(--r-xl);padding:24px;width:100%;max-width:520px;box-shadow:var(--sh-2);margin:auto}
+.modal h3{font-family:var(--serif);font-size:21px;margin-bottom:4px}
+.modal-act{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.switch{width:48px;height:27px;border-radius:999px;background:#CFCFC4;position:relative;cursor:pointer;border:0;flex:0 0 auto;transition:.18s}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:.18s}
+.switch.on{background:var(--deep-green)}
+.switch.on:after{left:24px}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.kv b{font-size:13.5px}.kv small{color:var(--muted);display:block;font-size:11.5px;font-weight:400}
+.kv .v{text-align:right;font-size:13.5px;font-weight:600}
+.arsip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.arsip{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;background:var(--white)}
+.arsip:hover{border-color:var(--lime);box-shadow:var(--sh-1)}
+.arsip b{display:block;font-size:14px}.arsip small{color:var(--muted)}
+.notif-panel{position:absolute;right:32px;top:70px;width:min(330px,calc(100vw - 40px));background:var(--white);border-radius:var(--r-lg);
+  box-shadow:var(--sh-2);z-index:35;overflow:hidden;border:1px solid var(--line)}
+.notif-panel .it{padding:12px 15px;border-bottom:1px solid var(--line);font-size:13px}
+.notif-panel .it:last-child{border-bottom:0}
+.notif-panel .it small{color:var(--muted);display:block;margin-top:3px}
+.trial-banner{background:linear-gradient(100deg,var(--deep-green),var(--green));color:#fff;border-radius:var(--r-lg);padding:15px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.trial-banner.expired{background:linear-gradient(100deg,#8d322f,var(--red))}
+.trial-banner b{font-size:15px}
+.trial-banner p{margin:2px 0 0;font-size:13px;opacity:.9}
+.bar-lite{height:8px;border-radius:9px;background:var(--line);overflow:hidden}
+.bar-lite i{display:block;height:100%;background:var(--lime)}
+
+/* ---------- Print ---------- */
+#printArea{display:none}
+@media print{
+  body{background:#fff}
+  .sidebar,.topbar,.scrim,.toast-wrap,.chat-fab,.chat-panel,.no-print,#landing,#authScreen{display:none !important}
+  .main{margin-left:0}
+  #printArea{display:block;padding:0}
+  #app,#app .page{display:block !important;padding:0 !important;background:#fff}
+  .page > *:not(#printArea){display:none !important}
+  .print-doc{font-size:12px;color:#000}
+  .print-doc h1{font-family:var(--serif);font-size:22px}
+  .print-doc table{min-width:0}
+  @page{margin:16mm}
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1080px){
+  .hero-grid{grid-template-columns:1fr}
+  .feat-grid{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .cards4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .split{grid-template-columns:1fr}
+  :root{--sidebar-w:236px}
+}
+@media (max-width:860px){
+  .nav-links,.nav-act{display:none}
+  .nav-links.open{display:flex;position:absolute;top:74px;left:0;right:0;background:var(--dark-green);flex-direction:column;
+    padding:16px 22px;gap:14px;border-bottom:2px solid var(--gold);z-index:41}
+  .nav-act.open{display:flex;position:absolute;top:236px;left:0;right:0;background:var(--dark-green);padding:0 22px 18px;z-index:41}
+  .nav-toggle{display:block}
+  .hero-card h1{font-size:33px}
+  .price-grid{grid-template-columns:1fr;gap:34px}
+  .cards3,.cards2{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr}
+  .sidebar{transform:translateX(-100%);transition:transform .22s ease;box-shadow:var(--sh-2)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .burger{display:inline-flex}
+  .topbar{padding:13px 16px}
+  .topbar h1{font-size:22px}
+  .page{padding:18px 16px 40px}
+  .notif-panel{right:16px;top:64px}
+  .grid2{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .feat-grid,.steps,.cards4{grid-template-columns:1fr}
+  .hero-card{padding:26px 22px}
+  .section{padding:46px 0}
+  .btn{padding:10px 16px}
+  .total-bar{grid-template-columns:1fr}
+  .total-bar div:last-child{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- ============ LANDING ============ -->
+<div id="landing">
+  <nav class="nav"><div class="land-wrap nav-in">
+    <div class="brand"><img class="brand-logo" src="/__l5e/assets-v1/630afad6-649d-419b-83c1-da4039cbdd8e/smarta-logo.png" alt="Logo SMARTA UMKM" style="height:34px" />SMARTA</div>
+    <div class="nav-links" id="navLinks">
+      <a href="#fitur">Fitur</a><a href="#harga">Harga</a><a href="#cara">Cara Pakai</a><a href="#bantuan">Bantuan</a><a href="#tentang">Tentang</a>
+    </div>
+    <div class="nav-act" id="navAct">
+      <button class="btn btn-gold" onclick="openAuth('login')">Masuk</button>
+      <button class="btn btn-gold" onclick="openAuth('register')">Daftar Gratis</button>
+    </div>
+    <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open');document.getElementById('navAct').classList.toggle('open')" aria-label="Menu">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  </div></nav>
+
+  <header class="hero"><div class="land-wrap hero-grid">
+    <div class="hero-card">
+      <h1>Catat Keuangan,<span class="y">Tingkatkan</span><span class="y">Keuntungan</span></h1>
+      <p>SMARTA UMKM membantu pemilik usaha dagang &amp; jasa mencatat keuangan, memisahkan keuangan pribadi dari usaha, dan menganalisa laba rugi secara otomatis.</p>
+      <div class="hero-cta">
+        <button class="btn btn-gold" onclick="openAuth('register')">UJI COBA GRATIS 30 HARI</button>
+        <button class="btn btn-ghost-light" style="border-color:#0d2b1b;color:#0d2b1b" onclick="loginDemo()">LIHAT DEMO</button>
+      </div>
+    </div>
+    <div class="side-card">
+      <span class="badge-gold">TAMPILAN APLIKASI</span>
+      <div class="mock">
+        <div class="mock-top"><i></i><i></i><i></i><b style="font-size:11px;margin-left:6px">Beranda — SMARTA UMKM</b></div>
+        <div class="mock-stat">
+          <div><span>Total Pemasukan</span><b class="tone-green">Rp 12.500.000</b></div>
+          <div><span>Total Pengeluaran</span><b class="tone-red">Rp 8.250.000</b></div>
+          <div><span>Laba Bersih</span><b>Rp 4.250.000</b></div>
+          <div><span>Total Transaksi</span><b>47</b></div>
+        </div>
+        <div class="mock-bars">
+          <i style="height:62%;background:var(--deep-green)"></i><i style="height:38%;background:var(--gold)"></i>
+          <i style="height:80%;background:var(--deep-green)"></i><i style="height:48%;background:var(--gold)"></i>
+          <i style="height:55%;background:var(--deep-green)"></i><i style="height:66%;background:var(--gold)"></i>
+          <i style="height:92%;background:var(--deep-green)"></i><i style="height:44%;background:var(--gold)"></i>
+        </div>
+        <div class="legend"><span><i style="background:var(--deep-green)"></i>Pemasukan</span><span><i style="background:var(--gold)"></i>Pengeluaran</span></div>
+      </div>
+      <p style="font-size:12.5px;color:rgba(255,255,255,.8);margin:14px 0 0">Semua angka pada dashboard dihitung otomatis dari transaksi yang Anda catat — tanpa rumus, tanpa keahlian akuntansi.</p>
+    </div>
+  </div></header>
+
+  <section class="section" id="fitur"><div class="land-wrap">
+    <div class="eyebrow">FITUR UNGGULAN</div>
+    <h2>Semua yang Dibutuhkan Usaha Anda</h2>
+    <p class="lead">Dirancang khusus untuk UMKM Indonesia — simpel, efisien, dan dapat diandalkan.</p>
+    <div class="feat-grid">
+      <div class="feat"><div class="fi"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.2"/></svg></div>
+        <h3>Foto Transaksi</h3><p>Ambil foto nota langsung dari kamera. Bukti transaksi tersimpan bersama catatannya.</p></div>
+      <div class="feat"><div class="fi"><svg class="ic" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 6-3 7-3 7h18s-3-1-3-7"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg></div>
+        <h3>Notifikasi Pengingat</h3><p>Dapatkan pengingat untuk mencatat transaksi agar tidak ada yang terlewat.</p></div>
+      <div class="feat"><div class="fi"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V9m5 11V4m5 16v-7m5 7V7"/></svg></div>
+        <h3>Laporan Laba Rugi</h3><p>Laporan bulanan otomatis lengkap dengan interpretasi kondisi keuangan.</p></div>
+      <div class="feat"><div class="fi"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 8l2-4h14l2 4M12 12v4"/></svg></div>
+        <h3>Pisah Keuangan Usaha &amp; Pribadi</h3><p>Kelola dua jenis keuangan dalam satu akun.</p></div>
+      <div class="feat"><div class="fi"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"/></svg></div>
+        <h3>Download Laporan PDF</h3><p>Unduh laporan laba rugi dalam format siap cetak.</p></div>
+      <div class="feat"><div class="fi"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+        <h3>Arsip Keuangan</h3><p>Akses kembali laporan keuangan berdasarkan periode.</p></div>
+    </div>
+  </div></section>
+
+  <section class="section alt" id="harga"><div class="land-wrap">
+    <div class="eyebrow">HARGA TERJANGKAU</div>
+    <h2>Investasi Kecil,<br>Manfaat Besar</h2>
+    <div class="price-grid">
+      <div class="plan free">
+        <div style="font-size:17px;font-weight:600">Uji Coba</div>
+        <div class="amt">Gratis</div>
+        <small class="muted">30 hari pertama</small>
+        <ul>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Semua fitur lengkap</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Hingga 100 transaksi</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>1 akun usaha</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Laporan laba rugi</li>
+        </ul>
+        <button class="btn btn-green btn-sq btn-block" onclick="openAuth('register')">Mulai Gratis</button>
+      </div>
+      <div class="plan pro">
+        <div class="pop">🔥 Paling Populer</div>
+        <div style="font-size:17px;font-weight:600">Langganan</div>
+        <div class="amt">Rp 24.000</div>
+        <small style="opacity:.85">per 6 bulan (Rp4.000/bulan)</small>
+        <ul>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Semua fitur lengkap</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Transaksi tidak terbatas</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Pisah keuangan pribadi &amp; usaha</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Download laporan PDF</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Helpdesk email prioritas</li>
+          <li><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>Chat bot 24 jam</li>
+        </ul>
+        <button class="btn btn-gold btn-sq btn-block" onclick="openAuth('register')">Berlangganan Sekarang</button>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="section" id="cara"><div class="land-wrap">
+    <div class="eyebrow">LANGKAH AWAL</div>
+    <h2>Mulai dalam 5 Menit</h2>
+    <p class="lead">Tidak perlu keahlian akuntansi. Ikuti langkah sederhana berikut.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Buat Akun</h3><p>Daftar dengan email dan isi profil usaha.</p></div>
+      <div class="step"><div class="n">2</div><h3>Pengaturan Usaha</h3><p>Isi nama usaha, jenis usaha, dan pisahkan uang usaha dengan pribadi.</p></div>
+      <div class="step"><div class="n">3</div><h3>Catat Transaksi</h3><p>Tambah pemasukan dan pengeluaran harian. Foto struk langsung dari kamera.</p></div>
+      <div class="step"><div class="n">4</div><h3>Lihat Laporan</h3><p>Lihat laporan laba rugi lengkap dengan analisis otomatis.</p></div>
+    </div>
+  </div></section>
+
+  <section class="section alt" id="bantuan"><div class="land-wrap">
+    <div class="eyebrow">BANTUAN</div>
+    <h2>Pertanyaan yang Sering Diajukan</h2>
+    <div class="faq" id="faqList"></div>
+  </div></section>
+
+  <section class="section" id="tentang"><div class="land-wrap">
+    <div class="eyebrow">TENTANG KAMI</div>
+    <h2 id="aboutTitle">Tentang SMARTA UMKM</h2>
+    <p class="lead" style="max-width:720px" id="aboutBody">SMARTA UMKM adalah platform pencatatan keuangan sederhana yang membantu UMKM mencatat transaksi, memisahkan keuangan usaha dan pribadi, serta memahami kondisi keuangan usaha.</p>
+    <div class="cards3 mt24">
+      <div class="card"><h3>Visi</h3><p class="muted" style="font-size:14px" id="aboutVisi">Menjadi pendamping keuangan digital yang paling mudah digunakan oleh pelaku UMKM di Indonesia.</p></div>
+      <div class="card"><h3>Misi</h3><p class="muted" style="font-size:14px" id="aboutMisi">Menyediakan pembukuan sederhana, laporan laba rugi otomatis, dan edukasi keuangan yang membumi bagi usaha dagang dan jasa.</p></div>
+      <div class="card"><h3>Kontak</h3><p class="muted" style="font-size:14px">Email: <b id="aboutEmail">smartaumkm@gmail.com</b><br>WhatsApp: 0895-6351-59345<br>Surakarta, Jawa Tengah</p></div>
+    </div>
+  </div></section>
+
+  <footer class="land-foot"><div class="land-wrap foot-grid">
+    <div>
+      <div class="brand" style="font-size:21px"><img class="brand-logo" src="/__l5e/assets-v1/630afad6-649d-419b-83c1-da4039cbdd8e/smarta-logo.png" alt="Logo SMARTA UMKM" style="height:30px" />SMARTA <em style="color:var(--gold);font-style:normal;font-family:var(--font);font-size:16px;font-weight:700">UMKM</em></div>
+      <p style="font-size:13.5px;opacity:.85;margin:8px 0 0">Catat keuangan, tingkatkan keuntungan</p>
+      <p style="font-size:13px;opacity:.75;margin:4px 0 0">smartaumkm@gmail.com</p>
+    </div>
+    <div><b style="font-size:14px">Produk</b><div class="mt8"><a href="#fitur">Fitur</a><a href="#harga">Harga</a><a href="#cara">Cara Pakai</a></div></div>
+    <div><b style="font-size:14px">Informasi</b><div class="mt8"><a href="#bantuan">Bantuan</a><a href="#tentang">Tentang Kami</a><a href="#bantuan">Kebijakan Privasi &amp; Ketentuan</a></div></div>
+    <div style="grid-column:1/-1;border-top:1px solid rgba(255,255,255,.16);padding-top:14px;font-size:12.5px;opacity:.8">@2026 SMARTA UMKM. Hak Cipta Dilindungi.</div>
+  </div></footer>
+</div>
+
+<!-- chat bot (SATU-SATUNYA widget chat) -->
+<div class="chat-fab no-print" id="chatFab"><span class="lbl">Chat 24 Jam</span>
+  <button class="bub" onclick="toggleChat()" aria-label="Buka chat bantuan"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.5-5A8 8 0 1 1 21 12z"/></svg></button></div>
+<div class="chat-panel hidden no-print" id="chatPanel">
+  <header class="spread"><span>Asisten SMARTA</span><button onclick="toggleChat()" style="background:none;border:0;color:#fff;cursor:pointer;font-size:18px" aria-label="Tutup chat">&times;</button></header>
+  <div class="chat-log" id="chatLog"><div class="chat-msg bot">Halo! Saya Asisten SMARTA UMKM. Ada yang bisa saya bantu?</div></div>
+  <form class="chat-in" onsubmit="return chatSend(event)"><input id="chatIn" placeholder="Tulis pertanyaan..." autocomplete="off" aria-label="Pesan" /><button class="btn btn-green btn-sm" type="submit">Kirim</button></form>
+</div>
+
+<!-- ============ AUTH ============ -->
+<div class="auth-screen hidden" id="authScreen">
+  <div class="auth-card">
+    <div class="spread"><div class="brand" style="color:var(--deep-green);font-size:22px"><img class="brand-logo" src="/__l5e/assets-v1/630afad6-649d-419b-83c1-da4039cbdd8e/smarta-logo.png" alt="Logo SMARTA UMKM" style="height:32px" />SMARTA</div>
+      <button class="btn btn-outline btn-sm" onclick="showLanding()">← Beranda</button></div>
+
+    <div id="loginForm" class="mt24">
+      <h2>Masuk ke Akun Anda</h2>
+      <p class="muted" style="font-size:14px;margin:4px 0 18px">Catat keuangan, tingkatkan keuntungan.</p>
+      <form onsubmit="doLogin(event)" novalidate>
+        <div class="field"><label for="li_email">Email</label><input class="input" id="li_email" type="email" placeholder="nama@email.com" /><div class="err-msg" id="e_li_email"></div></div>
+        <div class="field"><label for="li_pass">Password</label><div class="pw-wrap"><input class="input" id="li_pass" type="password" placeholder="••••••••" /><button type="button" class="pw-eye" aria-label="Tampilkan password" aria-pressed="false" onclick="togglePw(this)"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg></button></div><div class="err-msg" id="e_li_pass"></div></div>
+        <button class="btn btn-green btn-sq btn-block" type="submit">Masuk</button>
+      </form>
+      <p class="center muted mt16" style="font-size:14px">Belum punya akun? <a onclick="openAuth('register')" style="color:var(--green);font-weight:600;cursor:pointer">Daftar Gratis</a></p>
+      <div class="demo-hint"><b>Akun demo:</b><br>User — demo@smartaumkm.id / demo123<br>Admin — admin@smartaumkm.id / admin123</div>
+    </div>
+
+    <div id="registerForm" class="mt24 hidden">
+      <h2>Daftar Gratis 30 Hari</h2>
+      <p class="muted" style="font-size:14px;margin:4px 0 18px">Tanpa kartu kredit. Semua fitur terbuka selama masa uji coba.</p>
+      <form onsubmit="doRegister(event)" novalidate>
+        <div class="field"><label for="rg_nama">Nama Lengkap <span class="req">*</span></label><input class="input" id="rg_nama" placeholder="Nama pemilik usaha" /><div class="err-msg" id="e_rg_nama"></div></div>
+        <div class="field"><label for="rg_email">Email <span class="req">*</span></label><input class="input" id="rg_email" type="email" placeholder="nama@email.com" /><div class="err-msg" id="e_rg_email"></div></div>
+        <div class="grid2">
+          <div class="field"><label for="rg_pass">Password <span class="req">*</span></label><div class="pw-wrap"><input class="input" id="rg_pass" type="password" placeholder="Min. 6 karakter" /><button type="button" class="pw-eye" aria-label="Tampilkan password" aria-pressed="false" onclick="togglePw(this)"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg></button></div><div class="err-msg" id="e_rg_pass"></div></div>
+          <div class="field"><label for="rg_pass2">Konfirmasi Password <span class="req">*</span></label><div class="pw-wrap"><input class="input" id="rg_pass2" type="password" placeholder="Ulangi password" /><button type="button" class="pw-eye" aria-label="Tampilkan password" aria-pressed="false" onclick="togglePw(this)"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg></button></div><div class="err-msg" id="e_rg_pass2"></div></div>
+        </div>
+        <div class="field"><label for="rg_usaha">Nama Usaha <span class="req">*</span></label><input class="input" id="rg_usaha" placeholder="Contoh: Toko Sembako Makmur Jaya" /><div class="err-msg" id="e_rg_usaha"></div></div>
+        <div class="field field-jenis" id="fj_rg"><label for="rg_jenis">Jenis Usaha <span class="req">*</span></label>
+          <button type="button" class="info-btn" aria-label="Penjelasan jenis usaha" onclick="toggleJenisInfo(event,'fj_rg')">!</button>
+          <div class="info-pop"><p><b>Dagang</b>Usaha dagang adalah usaha yang membeli dan menjual kembali barang untuk memperoleh keuntungan. Contohnya toko sembako, toko pakaian, toko elektronik, dan usaha perdagangan lainnya.</p><p><b>Jasa</b>Usaha jasa adalah usaha yang memberikan layanan atau keahlian kepada pelanggan sebagai sumber pendapatan. Contohnya salon, laundry, jasa desain, jasa fotografi, dan usaha jasa lainnya.</p></div>
+          <select class="input" id="rg_jenis"><option value="">Pilih jenis usaha</option><option>Dagang</option><option>Jasa</option></select>
+          <div class="err-msg" id="e_rg_jenis"></div></div>
+        <p class="req-note"><span class="req">*</span> Wajib diisi</p>
+        <button class="btn btn-gold btn-sq btn-block" type="submit">Daftar &amp; Mulai Uji Coba Gratis 30 Hari</button>
+      </form>
+      <p class="center muted mt16" style="font-size:14px">Sudah punya akun? <a onclick="openAuth('login')" style="color:var(--green);font-weight:600;cursor:pointer">Masuk</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <div class="scrim" id="scrim" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div class="sb-logo" style="display:flex;align-items:center;gap:9px"><img class="brand-logo" src="/__l5e/assets-v1/630afad6-649d-419b-83c1-da4039cbdd8e/smarta-logo.png" alt="Logo SMARTA UMKM" style="height:30px" /><span>SMARTA <em>UMKM</em></span></div>
+      <hr>
+    </div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-foot">
+      <div class="sb-user"><div class="avatar" id="sbAv">D</div>
+        <div class="grow"><b class="truncate" id="sbName">Della</b><span class="truncate" id="sbBiz">Kopdes</span></div></div>
+      <button class="sb-out" onclick="confirmLogout()"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>Keluar</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="burger" onclick="openSidebar()" aria-label="Buka menu"><svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="row grow" style="min-width:0;gap:8px"><h1 class="truncate" id="pgTitle">Beranda</h1><span id="pgInfo"></span></div>
+      <button class="icon-btn" onclick="toggleNotif()" aria-label="Notifikasi"><svg class="ic" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 6-3 7-3 7h18s-3-1-3-7"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg><span class="dot" id="notifDot">1</span></button>
+      <button class="btn btn-outline btn-sq" id="btnAddTop" onclick="go('tambah')"><svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="hide-sm">TAMBAH TRANSAKSI</span></button>
+    </div>
+    <div class="notif-panel hidden" id="notifPanel"></div>
+    <div class="page" id="page"></div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ==========================================================================
+   SMARTA UMKM — standalone app engine (MVP / frontend product)
+   Semua data disimpan di localStorage (namespace: smarta_v1).
+
+   CATATAN HANDOFF DEVELOPER
+   -------------------------
+   Aplikasi ini sengaja dibuat standalone: tanpa backend, tanpa API key,
+   tanpa database online, dan tanpa payment gateway nyata. Semua titik
+   integrasi ditandai dengan komentar TODO agar mudah diganti tanpa
+   membongkar UI. Ringkasan titik integrasi:
+
+   // TODO: CONNECT TO BACKEND  -> lihat fungsi save() / load() / DataStore
+   // TODO: CONNECT TO DATABASE -> lihat DataStore + toTransactionDTO()
+   // TODO: REPLACE WITH PRODUCTION AUTH -> lihat doLogin() / doRegister()
+   // PEMBAYARAN: manual via WhatsApp (tanpa payment gateway) -> subscribeStart() / submitPayment()
+   // Nomor WhatsApp admin: DB.content.wa (default pada DEFAULT_CONTENT.wa), lihat waDigits()/waLink()
+   // TODO: CONNECT FILE STORAGE -> onPickFile() (base64 -> object storage)
+   // TODO: DEPLOY TO PRODUCTION HOSTING -> lihat HANDOFF.md
+
+   Dokumentasi lengkap: HANDOFF.md pada root project.
+   ========================================================================== */
+"use strict";
+const DB_KEY = "smarta_v1";
+const TRIAL_DAYS = 30;
+const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+const INCOME_CATS = ["Penjualan Barang","Penjualan Jasa","Pendapatan Lainnya","Modal","Lainnya"];
+const EXPENSE_CATS = ["Pembelian Barang","Bahan Baku","Gaji Karyawan","Sewa Tempat","Listrik & Air","Transportasi","Operasional","Lainnya"];
+
+/* ---------- utilities ---------- */
+const uid = (p="id") => p+"_"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rp = n => "Rp " + Math.round(Math.abs(Number(n)||0)).toLocaleString("id-ID");
+const signed = (n,t) => (t==="pemasukan"?"+":"−") + rp(n);
+const todayISO = () => new Date().toISOString().slice(0,10);
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const daysBetween = (a,b) => Math.ceil((new Date(b)-new Date(a))/86400000);
+const fmtDate = iso => { if(!iso) return "-"; const d=new Date(iso+"T00:00:00"); return d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3)+" "+d.getFullYear(); };
+const fmtDateTime = ts => new Date(ts).toLocaleString("id-ID",{dateStyle:"medium",timeStyle:"short"});
+const ym = iso => (iso||"").slice(0,7);
+const isEmail = v => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(v||"").trim());
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+
+/* ---------- icon set (SVG only, konsisten 20px) ---------- */
+const ICONS = {
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.6V20h14V9.6"/><path d="M9.5 20v-5.5h5V20"/>',
+  plus:'<rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M12 9v6M9 12h6"/>',
+  chart:'<path d="M4 20V9m5 11V4m5 16v-7m5 7V7"/>',
+  store:'<path d="M4 9h16v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 9 6 4h12l2 5"/><path d="M10 21v-5h4v5"/>',
+  wallet:'<path d="M3 8a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"/><path d="M3 8v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H5"/><circle cx="16.5" cy="14" r="1.2"/>',
+  history:'<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4v4h4"/><path d="M12 8v4.5l3 1.8"/>',
+  tag:'<path d="M20.5 13.3 13 20.8a2 2 0 0 1-2.8 0l-6.9-7A2 2 0 0 1 2.7 12l.6-7.2 7.2-.6a2 2 0 0 1 1.6.6l7 6.9a2 2 0 0 1 .4 1.6z"/><circle cx="8" cy="8" r="1.4"/>',
+  calendar:'<rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+  calchart:'<rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 17v-3m4 3v-5m4 5v-2"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  card:'<rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19M6 14.5h4"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.06A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.35l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.06A1.7 1.7 0 0 0 4.7 8.9a1.7 1.7 0 0 0-.35-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6h.09A1.7 1.7 0 0 0 10 3.05V3a2 2 0 1 1 4 0v.06a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.35l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.06a1.7 1.7 0 0 0-1.54 1z"/>',
+  users:'<circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.2a3.4 3.4 0 0 1 0 6.6M18 20a6.4 6.4 0 0 0-2-4.6"/>',
+  box:'<path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>',
+  doc:'<path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M13 3v5h5M8 13h8M8 17h6"/>',
+  person:'<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  bell:'<path d="M18 8a6 6 0 1 0-12 0c0 6-3 7-3 7h18s-3-1-3-7"/><path d="M10.5 20a2 2 0 0 0 3 0"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+  edit:'<path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"/>',
+  trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+  download:'<path d="M12 3v12m0 0-4-4m4 4 4-4M4 20h16"/>',
+  camera:'<path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.2"/>',
+  inbox:'<path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6z"/>',
+  check:'<path d="M4 12l5 5L20 6"/>',
+  content:'<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h8M8 17h5"/>'
+};
+const ic = (name,cls="ic") => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]||ICONS.doc}</svg>`;
+
+/* ---------- storage ---------- */
+function blankDB(){
+  return { users:[], session:null, businessProfiles:{}, transactions:[], categories:{}, reports:[],
+           subscriptions:{}, notifications:{}, settings:{}, packages:[], content:{}, paymentRequests:[], seeded:false };
+}
+let DB = blankDB();
+function save(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }catch(e){ toast("Penyimpanan browser penuh. Hapus beberapa foto bukti.","error"); } }
+// TODO: CONNECT TO BACKEND — ganti load()/save() dengan pemanggilan REST/GraphQL API.
+// Seluruh UI hanya membaca objek DB, sehingga cukup mengganti dua fungsi ini
+// (atau memakai DataStore di bawah) tanpa mengubah komponen tampilan.
+function load(){
+  try{ const raw = localStorage.getItem(DB_KEY); if(raw){ DB = Object.assign(blankDB(), JSON.parse(raw)); if(!Array.isArray(DB.paymentRequests)) DB.paymentRequests = []; } }
+  catch(e){ DB = blankDB(); }
+  migrateDB();
+  migrateBarang();
+}
+/** Menjaga struktur data tetap konsisten walau DB lama tersimpan di browser. */
+function migrateDB(){
+  DB.content = Object.assign({}, DEFAULT_CONTENT, DB.content || {});
+  if(!Array.isArray(DB.content.faq) || DB.content.faq.length === 0){
+    DB.content.faq = JSON.parse(JSON.stringify(DEFAULT_FAQ)); // FAQ tidak boleh kosong
+  }
+  if(!Array.isArray(DB.packages) || DB.packages.length === 0){
+    DB.packages = JSON.parse(JSON.stringify(DEFAULT_PACKAGES));
+  }
+  if(!Array.isArray(DB.paymentRequests)) DB.paymentRequests = [];
+  if(String(DB.content.wa||"").replace(/[^0-9]/g,"")==="081234567890") DB.content.wa = DEFAULT_CONTENT.wa; // nomor WA admin lama -> baru
+  (DB.packages||[]).forEach(p=>{ if(p.id==="pkg_6bulan" && p.harga===51000) p.harga = 24000; }); // harga lama -> Rp 24.000
+  if(!Array.isArray(DB.transactions)) DB.transactions = [];
+  DB.transactions.forEach(t=>{ if(!t.akunKeuangan) t.akunKeuangan = "usaha"; });
+}
+
+/* ---------- default content ---------- */
+const DEFAULT_FAQ = [
+  {q:"Bagaimana cara membuat akun?",a:"Klik Daftar Gratis, isi nama, email, password, nama usaha, dan jenis usaha. Akun baru mendapatkan uji coba gratis selama 30 hari."},
+  {q:"Bagaimana cara mencatat transaksi?",a:"Masuk ke dashboard, pilih Tambah Transaksi, pilih pemasukan atau pengeluaran, isi tanggal, nominal, kategori, akun keuangan, lalu simpan transaksi."},
+  {q:"Bagaimana cara upload foto bukti transaksi?",a:"Pada form Tambah Transaksi, pilih Upload Bukti Transaksi kemudian pilih foto nota atau struk dari perangkat."},
+  {q:"Bagaimana cara mengambil foto dari kamera?",a:"Pilih Ambil Foto dari Kamera. Browser akan meminta izin untuk menggunakan kamera perangkat."},
+  {q:"Bagaimana cara memisahkan keuangan usaha dan pribadi?",a:"Setiap transaksi memiliki pilihan Keuangan Usaha atau Keuangan Pribadi. Transaksi pribadi tidak masuk ke dalam laporan laba rugi usaha."},
+  {q:"Bagaimana cara melihat laporan laba rugi?",a:"Buka menu Laporan Laba Rugi, pilih bulan dan tahun, kemudian sistem akan menghitung laporan berdasarkan transaksi keuangan usaha."},
+  {q:"Bagaimana cara download laporan?",a:"Buka Laporan Laba Rugi kemudian gunakan tombol Download PDF atau fitur cetak browser untuk menyimpan laporan sebagai PDF."},
+  {q:"Bagaimana cara kerja masa uji coba?",a:"Setiap akun baru mendapatkan Uji Coba Gratis 30 Hari dengan semua fitur terbuka."},
+  {q:"Bagaimana cara berlangganan?",a:"Pilih Paket Langganan, pilih paket yang tersedia, kemudian ikuti proses konfirmasi pembayaran."},
+  {q:"Bagaimana cara pembayarannya?",a:"Pembayaran dilakukan secara manual melalui WhatsApp admin. Pilih paket, klik Bayar melalui WhatsApp, lalu lakukan pembayaran dan konfirmasi bersama admin. Langganan diaktifkan setelah pembayaran diterima."},
+];
+const LANDING_FAQ = [
+  {q:"Apa itu SMARTA UMKM?",a:"SMARTA UMKM adalah aplikasi pencatatan keuangan sederhana untuk UMKM. Anda dapat mencatat pemasukan dan pengeluaran, memisahkan keuangan usaha dari keuangan pribadi, serta melihat laporan laba rugi secara otomatis."},
+  {q:"Siapa yang dapat menggunakan SMARTA UMKM?",a:"Semua pemilik usaha kecil dan menengah, baik usaha dagang maupun usaha jasa, yang ingin mencatat keuangan usaha dengan mudah tanpa perlu paham istilah akuntansi."},
+  {q:"Apa saja jenis usaha yang tersedia?",a:"SMARTA UMKM menyediakan dua jenis usaha, yaitu Dagang dan Jasa."},
+  {q:"Berapa lama masa Uji Coba?",a:"Setiap akun baru mendapatkan Uji Coba Gratis selama 30 hari."},
+  {q:"Bagaimana cara melakukan pembayaran atau berlangganan?",a:"Pembayaran dilakukan melalui WhatsApp Admin SMARTA UMKM untuk mendapatkan informasi dan melakukan proses pembayaran secara manual. Paket langganan Rp 24.000 untuk 6 bulan."},
+];
+const DEFAULT_CONTENT = {
+  tagline:"Catat keuangan usaha, pahami untung ruginya.",
+  sub:"SMARTA UMKM membantu pelaku usaha dagang dan jasa mencatat transaksi harian, memisahkan keuangan usaha dan pribadi, serta membaca laporan laba rugi dengan bahasa yang mudah dipahami.",
+  tentang:"SMARTA UMKM adalah platform pencatatan keuangan sederhana untuk UMKM Indonesia — pembukuan rapi, laporan otomatis, tanpa istilah akuntansi yang membingungkan.",
+  wa:"0895635159345",
+  aboutTitle:"Tentang SMARTA UMKM",
+  about:"SMARTA UMKM adalah platform pencatatan keuangan sederhana yang membantu UMKM mencatat transaksi, memisahkan keuangan usaha dan pribadi, serta memahami kondisi keuangan usaha.",
+  visi:"Menjadi pendamping keuangan digital yang paling mudah digunakan oleh pelaku UMKM di Indonesia.",
+  misi:"Menyediakan pembukuan sederhana, laporan laba rugi otomatis, dan edukasi keuangan yang membumi bagi usaha dagang dan jasa.",
+  email:"smartaumkm@gmail.com",
+  faq: DEFAULT_FAQ
+};
+const DEFAULT_PACKAGES = [
+  {id:"pkg_trial", nama:"Uji Coba Gratis", harga:0, durasi:30, satuan:"hari", batas:100, fitur:["Semua fitur lengkap","Hingga 100 transaksi","1 akun usaha","Laporan laba rugi"], aktif:true},
+  {id:"pkg_6bulan", nama:"Langganan 6 Bulan", harga:24000, durasi:6, satuan:"bulan", batas:0,
+   fitur:["Semua fitur lengkap","Transaksi tidak terbatas","Pisah keuangan pribadi & usaha","Download laporan PDF","Helpdesk email prioritas","Chat bot 24 jam"], aktif:true}
+];
+
+function defaultCats(){
+  return INCOME_CATS.map(n=>({id:uid("cat"),nama:n,jenis:"pemasukan"}))
+    .concat(EXPENSE_CATS.map(n=>({id:uid("cat"),nama:n,jenis:"pengeluaran"})));
+}
+function defaultSettings(){ return {reminderOn:true, reminderTime:"20:00", monthlyReportNotif:true}; }
+function defaultNotifs(){ return []; }
+
+/* ---------- seeding ---------- */
+function makeUser({nama,email,password,namaUsaha,jenisUsaha,role="user",status="trial",createdAt,trialStart}){
+  const start = trialStart || new Date().toISOString();
+  return { id:uid("usr"), nama, email:String(email).toLowerCase().trim(), password, role,
+           createdAt: createdAt || start, aktif:true,
+           trialStart:start, trialEnd: addDays(start,TRIAL_DAYS).toISOString(),
+           namaUsaha, jenisUsaha, plan: status==="active" ? "pkg_6bulan" : "pkg_trial",
+           subStatusManual: status==="active" ? "active" : null,
+           subEnd: status==="active" ? addDays(new Date(),150).toISOString() : null };
+}
+function seedIfEmpty(){
+  if(DB.seeded) return;
+  DB.content = JSON.parse(JSON.stringify(DEFAULT_CONTENT));
+  DB.packages = JSON.parse(JSON.stringify(DEFAULT_PACKAGES));
+
+  const demo = makeUser({nama:"Bu Sum", email:"demo@smartaumkm.id", password:"demo123",
+      namaUsaha:"Toko Sembako Makmur Jaya", jenisUsaha:"Dagang",
+      trialStart: addDays(new Date(),-3).toISOString()});
+  const admin = makeUser({nama:"Admin SMARTA", email:"admin@smartaumkm.id", password:"admin123",
+      namaUsaha:"SMARTA UMKM", jenisUsaha:"Jasa", role:"admin", status:"active"});
+  DB.users = [demo, admin];
+
+  [demo,admin].forEach(u=>{
+    DB.categories[u.id] = defaultCats();
+    DB.settings[u.id] = defaultSettings();
+    DB.notifications[u.id] = defaultNotifs();
+  });
+
+  DB.businessProfiles[demo.id] = {namaUsaha:"Toko Sembako Makmur Jaya", jenisUsaha:"Dagang",
+    pemilik:"Bu Sum", email:"busum@email.com", hp:"0812-3456-7890", alamat:"Jl. Pasar Baru No. 12, Surakarta"};
+  DB.businessProfiles[admin.id] = {namaUsaha:"SMARTA UMKM", jenisUsaha:"Jasa",
+    pemilik:"Admin SMARTA", email:"admin@smartaumkm.id", hp:"0800-1234-5678", alamat:"Surakarta, Jawa Tengah"};
+
+  // demo transaksi: bulan ini + 2 bulan sebelumnya, supaya grafik & laporan tahunan berisi
+  const now = new Date();
+  const mk = (monthOffset,day,jenis,kategori,nominal,deskripsi,akun) => {
+    const d = new Date(now.getFullYear(), now.getMonth()-monthOffset, day);
+    return { id:uid("trx"), userId:demo.id, tanggal:d.toISOString().slice(0,10), jenis, kategori,
+             nominal, akunKeuangan:akun||"usaha", deskripsi, bukti:null, createdAt:d.toISOString() };
+  };
+  DB.transactions = [
+    mk(0,2,"pemasukan","Penjualan Barang",850000,"Penjualan Beras 5kg"),
+    mk(0,1,"pemasukan","Penjualan Barang",320000,"Penjualan Minyak Goreng"),
+    mk(0,3,"pemasukan","Penjualan Jasa",1200000,"Jasa antar barang pelanggan"),
+    mk(0,1,"pengeluaran","Pembelian Barang",420000,"Beli Stok Gula"),
+    mk(0,1,"pengeluaran","Operasional",185000,"Tagihan Listrik"),
+    mk(0,4,"pengeluaran","Gaji Karyawan",1200000,"Gaji karyawan toko"),
+    mk(0,5,"pengeluaran","Sewa Tempat",500000,"Sewa kios pasar"),
+    mk(0,6,"pengeluaran","Transportasi",265000,"Bensin & angkut barang"),
+    mk(0,7,"pemasukan","Penjualan Barang",1450000,"Penjualan sembako mingguan"),
+    mk(0,8,"pengeluaran","Bahan Baku",680000,"Kulakan minyak & tepung"),
+    mk(0,3,"pemasukan","Modal",2000000,"Pengambilan laba pemilik","pribadi"),
+    mk(0,2,"pengeluaran","Lainnya",650000,"Belanja kebutuhan rumah","pribadi"),
+    mk(1,5,"pemasukan","Penjualan Barang",4200000,"Penjualan bulan lalu"),
+    mk(1,6,"pemasukan","Penjualan Jasa",900000,"Jasa titip barang"),
+    mk(1,7,"pengeluaran","Pembelian Barang",2100000,"Kulakan stok"),
+    mk(1,8,"pengeluaran","Listrik & Air",210000,"Listrik & air"),
+    mk(1,9,"pengeluaran","Gaji Karyawan",1200000,"Gaji karyawan"),
+    mk(2,5,"pemasukan","Penjualan Barang",3800000,"Penjualan dua bulan lalu"),
+    mk(2,7,"pengeluaran","Pembelian Barang",1750000,"Kulakan stok"),
+    mk(2,9,"pengeluaran","Operasional",320000,"Perawatan alat & kemasan")
+  ];
+  DB.seeded = true;
+  save();
+}
+
+/* ---------- session & subscription ---------- */
+function currentUser(){ return DB.session ? DB.users.find(u=>u.id===DB.session.userId)||null : null; }
+function isAdmin(u){ return !!u && u.role==="admin"; }
+function trialLeft(u){ return u ? daysBetween(new Date(), u.trialEnd) : 0; }
+function subStatus(u){
+  if(!u) return "expired";
+  if(u.subStatusManual==="active" && u.subEnd && new Date(u.subEnd) > new Date()) return "active";
+  return trialLeft(u) > 0 ? "trial" : "expired";
+}
+function statusLabel(s){ return s==="trial"?"Uji Coba":s==="active"?"Aktif":"Expired"; }
+function planName(u){ const p = DB.packages.find(x=>x.id===u.plan); return p?p.nama:"—"; }
+
+/* ---------- per-user data helpers ---------- */
+function myTx(){ const u=currentUser(); return u ? DB.transactions.filter(t=>t.userId===u.id) : []; }
+function myCats(){ const u=currentUser(); if(!u) return []; if(!DB.categories[u.id]) DB.categories[u.id]=defaultCats(); return DB.categories[u.id]; }
+function mySettings(){ const u=currentUser(); if(!u) return defaultSettings(); if(!DB.settings[u.id]) DB.settings[u.id]=defaultSettings(); return DB.settings[u.id]; }
+function myNotifs(){ const u=currentUser(); if(!u) return []; if(!DB.notifications[u.id]) DB.notifications[u.id]=[]; return DB.notifications[u.id]; }
+function myProfile(){ const u=currentUser(); if(!u) return {};
+  if(!DB.businessProfiles[u.id]) DB.businessProfiles[u.id]={namaUsaha:u.namaUsaha,jenisUsaha:normJenis(u.jenisUsaha),pemilik:u.nama,email:u.email,hp:"",alamat:"",npwp:""};
+  const p = DB.businessProfiles[u.id];
+  p.jenisUsaha = normJenis(p.jenisUsaha); if(p.npwp===undefined) p.npwp="";
+  return p; }
+/* Jenis usaha hanya 2: Dagang | Jasa (migrasi nilai lama) */
+function migrateBarang(){ try{ (DB.transactions||[]).forEach(t=>{ if(t.kategori==="Penjualan Produk") t.kategori="Penjualan Barang"; });
+  Object.values(DB.categories||{}).forEach(l=>(l||[]).forEach(c=>{ if(c.nama==="Penjualan Produk") c.nama="Penjualan Barang"; })); }catch(e){} }
+function togglePw(btn){ const inp=btn.parentElement.querySelector("input"); if(!inp) return; const show=inp.type==="password"; inp.type=show?"text":"password";
+  btn.setAttribute("aria-label", show?"Sembunyikan password":"Tampilkan password"); btn.setAttribute("aria-pressed", show?"true":"false");
+  btn.innerHTML = show ? '<svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 10.6a2.8 2.8 0 0 0 3.9 3.9"/><path d="M6.6 6.7C4.1 8.4 2.5 12 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.3-1"/><path d="M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5s-.9 1.7-2.6 3.4"/></svg>' : '<svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>'; }
+function normJenis(v){ v=(v||"").toString(); if(/jasa/i.test(v)) return "Jasa"; if(/dagang/i.test(v)) return "Dagang"; return v; }
+function toggleJenisInfo(ev, id){ if(ev) ev.stopPropagation(); const el=document.getElementById(id); if(!el) return;
+  document.querySelectorAll(".field-jenis.open,.info-wrap.open").forEach(n=>{ if(n!==el) n.classList.remove("open"); });
+  el.classList.toggle("open"); }
+document.addEventListener("click", ()=>document.querySelectorAll(".field-jenis.open,.info-wrap.open").forEach(n=>n.classList.remove("open")));
+
+/* Penjelasan singkat per halaman keuangan (tanda "!" pada judul halaman). */
+const PAGE_INFO = {
+  labarugi:"Laporan Laba Rugi digunakan untuk melihat pendapatan dan pengeluaran usaha serta mengetahui apakah usaha memperoleh laba atau mengalami kerugian.",
+  kategori:"Kategori digunakan untuk mengelompokkan transaksi pemasukan dan pengeluaran agar pencatatan keuangan lebih teratur dan mudah dipahami.",
+  bulanan:"Laporan Bulanan digunakan untuk melihat ringkasan pemasukan, pengeluaran, dan laba atau rugi usaha dalam satu periode bulan.",
+  tahunan:"Laporan Tahunan digunakan untuk melihat ringkasan kondisi keuangan usaha selama satu tahun, termasuk pemasukan, pengeluaran, dan laba atau rugi.",
+  arsip:"Arsip Laporan digunakan untuk menyimpan dan melihat kembali laporan keuangan yang telah dibuat berdasarkan periode tertentu."
+};
+function infoTipHTML(key, judul){
+  const txt = PAGE_INFO[key]; if(!txt) return "";
+  const id = "info_"+key;
+  return `<span class="info-wrap" id="${id}"><button type="button" class="info-btn" aria-label="Penjelasan ${esc(judul)}" onclick="toggleJenisInfo(event,'${id}')">!</button>
+    <span class="info-pop"><b>${esc(judul)}</b><p>${esc(txt)}</p></span></span>`;
+}
+
+/* ---------- business logic (pure, testable) ---------- */
+function sumBy(list, jenis, akun){
+  return list.filter(t => t.jenis===jenis && (!akun || t.akunKeuangan===akun))
+             .reduce((s,t)=>s+Number(t.nominal||0),0);
+}
+function totals(list, akun){
+  const masuk = sumBy(list,"pemasukan",akun), keluar = sumBy(list,"pengeluaran",akun);
+  return {masuk, keluar, saldo: masuk-keluar, count: list.filter(t=>!akun||t.akunKeuangan===akun).length};
+}
+/** Laba rugi USAHA saja — transaksi pribadi tidak pernah masuk. */
+function profitLoss(list, period){
+  const rows = list.filter(t => t.akunKeuangan==="usaha" && (!period || ym(t.tanggal)===period));
+  const pick = (jenis,cats) => cats.map(c=>({nama:c, nilai: rows.filter(t=>t.jenis===jenis && t.kategori===c).reduce((s,t)=>s+Number(t.nominal),0)}));
+  const pendapatan = pick("pemasukan", ["Penjualan Barang","Penjualan Jasa","Pendapatan Lainnya","Modal","Lainnya"]);
+  const beban = pick("pengeluaran", EXPENSE_CATS);
+  const totalPendapatan = pendapatan.reduce((s,r)=>s+r.nilai,0);
+  const totalBeban = beban.reduce((s,r)=>s+r.nilai,0);
+  const laba = totalPendapatan-totalBeban;
+  const margin = totalPendapatan>0 ? (laba/totalPendapatan*100) : 0;
+  return {pendapatan, beban, totalPendapatan, totalBeban, laba, margin, jumlahTransaksi: rows.length};
+}
+function interpret(pl, prevPl){
+  let judul, kalimat;
+  if(pl.totalPendapatan===0 && pl.totalBeban===0){ judul="Belum Ada Data"; kalimat="Belum ada transaksi usaha pada periode ini, sehingga laba rugi belum dapat dianalisa."; }
+  else if(pl.laba>0 && pl.margin>=15){ judul="Keuangan Sehat"; kalimat="Usaha menunjukkan kondisi keuangan yang sehat."; }
+  else if(pl.laba>0){ judul="Perlu Perhatian"; kalimat="Usaha masih menghasilkan laba, tetapi margin perlu diperhatikan."; }
+  else if(pl.laba===0){ judul="Kondisi Impas"; kalimat="Usaha berada pada kondisi impas."; }
+  else { judul="Mengalami Kerugian"; kalimat="Usaha mengalami kerugian pada periode ini."; }
+
+  const poin = [];
+  if(prevPl && prevPl.totalPendapatan>0){
+    const delta = (pl.totalPendapatan-prevPl.totalPendapatan)/prevPl.totalPendapatan*100;
+    poin.push("Pendapatan " + (delta>=0?"naik ":"turun ") + Math.abs(delta).toFixed(1) + "% dibanding periode sebelumnya.");
+  } else if(pl.totalPendapatan>0){
+    poin.push("Belum ada pembanding periode sebelumnya, jadikan periode ini sebagai basis perbandingan.");
+  }
+  const terbesar = pl.beban.slice().sort((a,b)=>b.nilai-a.nilai)[0];
+  if(terbesar && terbesar.nilai>0){
+    const pct = pl.totalPendapatan>0 ? (terbesar.nilai/pl.totalPendapatan*100).toFixed(0) : "0";
+    poin.push("Beban terbesar: " + terbesar.nama + " " + rp(terbesar.nilai) + " (" + pct + "% dari pendapatan).");
+  }
+  if(pl.totalPendapatan>0) poin.push("Margin laba bersih " + pl.margin.toFixed(1) + "%.");
+  if(pl.laba>0) poin.push("Rekomendasi: sisihkan 10–15% laba (±" + rp(pl.laba*0.12) + ") sebagai dana darurat usaha.");
+  else if(pl.laba<0) poin.push("Rekomendasi: tekan beban terbesar dan tingkatkan penjualan produk/jasa dengan margin tertinggi.");
+  else poin.push("Rekomendasi: tambah volume penjualan agar melewati titik impas.");
+  return {judul, kalimat, poin};
+}
+function monthlySeries(list, year, akun){
+  return MONTHS.map((m,i)=>{
+    const p = year + "-" + String(i+1).padStart(2,"0");
+    const rows = list.filter(t=>ym(t.tanggal)===p && (!akun || t.akunKeuangan===akun));
+    const masuk = sumBy(rows,"pemasukan"), keluar = sumBy(rows,"pengeluaran");
+    return {bulan:m, periode:p, masuk, keluar, laba:masuk-keluar, count:rows.length};
+  });
+}
+/* ==========================================================================
+   DATA CONTRACT — bentuk kanonik untuk backend/database nanti
+   UI memakai nama field Bahasa Indonesia; adapter di bawah menerjemahkannya
+   ke skema API kanonik agar developer tidak perlu mengubah UI.
+   Entity: User, BusinessProfile, Transaction, Category, Report,
+           Subscription, PaymentRequest, Notification, FAQ, Content.
+   ========================================================================== */
+/** Transaction (UI) -> Transaction DTO (API/DB). */
+function toTransactionDTO(t){
+  return {
+    id: t.id,
+    userId: t.userId,
+    date: t.tanggal,                                       // ISO yyyy-mm-dd
+    type: t.jenis === "pemasukan" ? "income" : "expense",
+    category: t.kategori,
+    amount: Number(t.nominal || 0),
+    financialType: t.akunKeuangan === "pribadi" ? "personal" : "business",
+    description: t.deskripsi || "",
+    proof: t.bukti || null,                                // base64 sekarang, URL nanti
+    createdAt: t.createdAt
+  };
+}
+/** Transaction DTO (API/DB) -> Transaction (UI). */
+function fromTransactionDTO(d){
+  return {
+    id: d.id, userId: d.userId, tanggal: d.date,
+    jenis: d.type === "income" ? "pemasukan" : "pengeluaran",
+    kategori: d.category, nominal: Number(d.amount || 0),
+    akunKeuangan: d.financialType === "personal" ? "pribadi" : "usaha",
+    deskripsi: d.description || "", bukti: d.proof || null,
+    createdAt: d.createdAt
+  };
+}
+/** Status langganan lengkap: trial | active | expired | pending | rejected. */
+function subscriptionState(u){
+  const base = subStatus(u); // trial | active | expired
+  if(base === "active") return "active";
+  const last = DB.paymentRequests.filter(r=>r.userId===u.id)
+    .sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt)))[0];
+  if(last && last.status === "pending") return "pending";
+  if(last && last.status === "rejected" && base === "expired") return "rejected";
+  return base;
+}
+/* --------------------------------------------------------------------------
+   DataStore — satu-satunya lapisan yang menyentuh localStorage.
+   // TODO: CONNECT TO DATABASE — implementasikan ulang method di sini
+   // memakai backend API. Selebihnya (UI, laporan, chart) tidak berubah.
+   -------------------------------------------------------------------------- */
+const DataStore = {
+  listTransactions(userId){ return DB.transactions.filter(t=>t.userId===userId); },
+  createTransaction(tx){ DB.transactions.unshift(tx); save(); return tx; },
+  updateTransaction(id, patch){ const t=DB.transactions.find(x=>x.id===id); if(t) Object.assign(t,patch); save(); return t; },
+  deleteTransaction(id){ DB.transactions = DB.transactions.filter(t=>t.id!==id); save(); },
+  exportTransactions(userId){ return this.listTransactions(userId).map(toTransactionDTO); }
+};
+
+/* export for tests / debugging */
+window.SMARTA = {totals, sumBy, profitLoss, interpret, monthlySeries, rp, isEmail, daysBetween, TRIAL_DAYS,
+  toTransactionDTO, fromTransactionDTO, subscriptionState, DataStore};
+
+/* ---------- toast / modal / confirm ---------- */
+function toast(msg, type="success", ms=3200){
+  const el = document.createElement("div");
+  el.className = "toast " + (type==="success"?"":type);
+  el.setAttribute("role","status");
+  el.innerHTML = esc(msg);
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(()=>{ el.style.opacity="0"; el.style.transform="translateX(14px)"; setTimeout(()=>el.remove(),200); }, ms);
+}
+function modal(html){
+  const root = document.getElementById("modalRoot");
+  root.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
+  document.body.style.overflow = "hidden";
+}
+function closeModal(){ document.getElementById("modalRoot").innerHTML=""; document.body.style.overflow=""; }
+let _confirmCb = null;
+function confirmDialog(title, body, cb, okLabel="Ya, Lanjutkan", danger=true){
+  _confirmCb = cb;
+  modal(`<h3>${esc(title)}</h3><p class="muted" style="font-size:14px">${esc(body)}</p>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+    <button class="btn ${danger?"btn-danger":"btn-green"}" id="confirmOk" onclick="runConfirm()">${esc(okLabel)}</button></div>`);
+}
+function runConfirm(){ const cb=_confirmCb; _confirmCb=null; closeModal(); if(cb) cb(); }
+
+/* ---------- validation helper ---------- */
+function setErr(id, msg){
+  const inp = document.getElementById(id), box = document.getElementById("e_"+id);
+  if(inp) inp.classList.toggle("err", !!msg);
+  if(box){ box.textContent = msg||""; box.classList.toggle("show", !!msg); }
+  return !msg;
+}
+function val(id){ const e=document.getElementById(id); return e ? String(e.value).trim() : ""; }
+
+/* ---------- landing / auth navigation ---------- */
+function showLanding(){
+  document.getElementById("landing").classList.remove("hidden");
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("app").classList.remove("on");
+  document.getElementById("chatFab").classList.remove("hidden");
+  // render ulang agar perubahan konten/FAQ dari Admin langsung tampil
+  renderLanding();
+  document.body.style.overflow=""; window.scrollTo(0,0);
+}
+function openAuth(mode){
+  document.getElementById("landing").classList.add("hidden");
+  document.getElementById("app").classList.remove("on");
+  document.getElementById("authScreen").classList.remove("hidden");
+  document.getElementById("chatFab").classList.remove("hidden");
+  document.getElementById("loginForm").classList.toggle("hidden", mode!=="login");
+  document.getElementById("registerForm").classList.toggle("hidden", mode!=="register");
+  window.scrollTo(0,0);
+}
+/* TODO: REPLACE WITH PRODUCTION AUTH
+   Login/register di bawah hanya untuk versi standalone (password dibandingkan
+   di sisi browser, sesi disimpan di localStorage). Ini BUKAN authentication
+   yang aman untuk produksi. Ganti dengan auth backend (session/JWT + hashing
+   password di server) — cukup ubah doLogin/doRegister/confirmLogout dan
+   currentUser(); UI tidak perlu diubah. */
+function doLogin(e){
+  if(e) e.preventDefault();
+  const email = val("li_email"), pass = val("li_pass");
+  let ok = setErr("li_email", !email?"Email wajib diisi.":(!isEmail(email)?"Format email tidak valid.":""));
+  ok = setErr("li_pass", !pass?"Password wajib diisi.":"") && ok;
+  if(!ok) return false;
+  const u = DB.users.find(x=>x.email===email.toLowerCase());
+  if(!u || u.password!==pass){ setErr("li_pass","Email atau password salah."); toast("Email atau password salah.","error"); return false; }
+  if(u.aktif===false){ toast("Akun Anda dinonaktifkan. Hubungi admin.","error"); return false; }
+  DB.session = {userId:u.id, at:Date.now()}; save();
+  enterApp(); toast("Selamat datang kembali, "+u.nama+"!");
+  return true;
+}
+function loginDemo(){
+  const u = DB.users.find(x=>x.email==="demo@smartaumkm.id");
+  DB.session = {userId:u.id, at:Date.now()}; save(); enterApp(); toast("Masuk sebagai akun demo.","info");
+}
+function doRegister(e){
+  if(e) e.preventDefault();
+  const nama=val("rg_nama"), email=val("rg_email"), p1=val("rg_pass"), p2=val("rg_pass2"), usaha=val("rg_usaha"), jenis=val("rg_jenis");
+  let ok = setErr("rg_nama", !nama?"Nama wajib diisi.":(nama.length<3?"Nama minimal 3 karakter.":""));
+  ok = setErr("rg_email", !email?"Email wajib diisi.":(!isEmail(email)?"Format email tidak valid.":
+        (DB.users.some(u=>u.email===email.toLowerCase())?"Email sudah terdaftar.":""))) && ok;
+  ok = setErr("rg_pass", !p1?"Password wajib diisi.":(p1.length<6?"Password minimal 6 karakter.":"")) && ok;
+  ok = setErr("rg_pass2", !p2?"Konfirmasi password wajib diisi.":(p1!==p2?"Konfirmasi password tidak sama.":"")) && ok;
+  ok = setErr("rg_usaha", !usaha?"Nama usaha wajib diisi.":"") && ok;
+  ok = setErr("rg_jenis", !jenis?"Pilih jenis usaha.":"") && ok;
+  if(!ok) return false;
+  const u = makeUser({nama, email, password:p1, namaUsaha:usaha, jenisUsaha:normJenis(jenis)});
+  DB.users.push(u);
+  DB.categories[u.id]=defaultCats(); DB.settings[u.id]=defaultSettings(); DB.notifications[u.id]=[];
+  DB.businessProfiles[u.id]={namaUsaha:usaha,jenisUsaha:normJenis(jenis),pemilik:nama,email:email,hp:"",alamat:"",npwp:""};
+  DB.notifications[u.id].push({id:uid("ntf"),judul:"Uji Coba Gratis 30 Hari dimulai",isi:"Semua fitur terbuka sampai "+fmtDate(u.trialEnd.slice(0,10))+".",ts:Date.now(),read:false});
+  DB.session={userId:u.id,at:Date.now()}; save();
+  ["rg_nama","rg_email","rg_pass","rg_pass2","rg_usaha","rg_jenis"].forEach(i=>{const el=document.getElementById(i); if(el) el.value="";});
+  enterApp(); toast("Pendaftaran berhasil. Uji Coba Gratis 30 Hari Anda dimulai hari ini.");
+  return true;
+}
+function confirmLogout(){
+  confirmDialog("Keluar dari akun?","Anda akan kembali ke halaman beranda. Data tetap tersimpan di browser ini.",()=>{
+    DB.session=null; save(); showLanding(); toast("Anda telah keluar.","info");
+  },"Ya, Keluar");
+}
+function enterApp(){
+  document.getElementById("landing").classList.add("hidden");
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("app").classList.add("on");
+  document.getElementById("chatFab").classList.remove("hidden");
+  pushReminder();
+  go(isAdmin(currentUser()) ? "admin" : "beranda");
+}
+
+/* ---------- sidebar ---------- */
+const USER_NAV = [
+  {sec:"Menu Utama", items:[
+    {k:"beranda", t:"Beranda", i:"home"},
+    {k:"tambah", t:"Tambah Transaksi", i:"plus"},
+    {k:"labarugi", t:"Laporan Laba Rugi", i:"chart"}]},
+  {sec:"Keuangan", items:[
+    {k:"usaha", t:"Keuangan Usaha", i:"store"},
+    {k:"pribadi", t:"Keuangan Pribadi", i:"wallet"},
+    {k:"riwayat", t:"Riwayat Transaksi", i:"history"},
+    {k:"kategori", t:"Kategori", i:"tag"}]},
+  {sec:"Laporan", items:[
+    {k:"bulanan", t:"Laporan Bulanan", i:"calendar"},
+    {k:"tahunan", t:"Laporan Tahunan", i:"calchart"},
+    {k:"arsip", t:"Arsip Laporan", i:"folder"}]},
+  {sec:"Pengaturan", items:[
+    {k:"paket", t:"Paket Langganan", i:"card"},
+    {k:"setelan", t:"Setelan", i:"settings"},
+    {k:"bantuanApp", t:"Bantuan", i:"doc"}]}
+];
+const ADMIN_NAV = [
+  {sec:"Admin", items:[
+    {k:"admin", t:"Dashboard Admin", i:"chart"},
+    {k:"adminUsers", t:"Manajemen User", i:"users"},
+    {k:"adminPaket", t:"Manajemen Paket", i:"box"},
+    {k:"adminPembayaran", t:"Pembayaran", i:"inbox"},
+    {k:"adminKonten", t:"Manajemen Konten", i:"content"}]},
+  {sec:"Akun", items:[
+    {k:"setelan", t:"Setelan", i:"settings"}]}
+];
+let route = "beranda";
+function navFor(){ return isAdmin(currentUser()) ? ADMIN_NAV : USER_NAV; }
+function renderSidebar(){
+  const u = currentUser(); if(!u) return;
+  document.getElementById("sbNav").innerHTML = navFor().map(g =>
+    `<div class="sb-sec">${esc(g.sec)}</div>` + g.items.map(it =>
+      `<button class="sb-item ${route===it.k?"on":""}" onclick="go('${it.k}')">${ic(it.i)}<span class="truncate">${esc(it.t).toUpperCase()}</span></button>`
+    ).join("")).join("");
+  const prof = isAdmin(u) ? {namaUsaha:"SMARTA UMKM"} : myProfile();
+  document.getElementById("sbAv").textContent = u.nama.split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  document.getElementById("sbName").textContent = u.nama;
+  document.getElementById("sbBiz").textContent = isAdmin(u) ? "Administrator" : (prof.namaUsaha||u.namaUsaha);
+  document.getElementById("btnAddTop").classList.toggle("hidden", isAdmin(u));
+}
+function openSidebar(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("scrim").classList.add("on"); }
+function closeSidebar(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("scrim").classList.remove("on"); }
+
+/* ---------- notifications ---------- */
+function pushReminder(){
+  const u = currentUser(); if(!u || isAdmin(u)) return;
+  const list = myNotifs();
+  const today = todayISO();
+  const s = mySettings();
+  const hasToday = myTx().some(t=>t.tanggal===today);
+  if(s.reminderOn && !hasToday && !list.some(n=>n.tag==="reminder_"+today)){
+    list.unshift({id:uid("ntf"),tag:"reminder_"+today,judul:"Pengingat pencatatan",
+      isi:"Anda belum mencatat transaksi hari ini. Pengingat harian aktif pukul "+s.reminderTime+" WIB.",ts:Date.now(),read:false});
+  }
+  const left = trialLeft(u);
+  if(subStatus(u)==="trial" && left<=5 && !list.some(n=>n.tag==="trial_"+left)){
+    list.unshift({id:uid("ntf"),tag:"trial_"+left,judul:"Masa uji coba hampir berakhir",isi:"Sisa "+left+" hari masa uji coba. Berlangganan Rp24.000/6 bulan agar tetap lengkap.",ts:Date.now(),read:false});
+  }
+  if(subStatus(u)==="expired" && !list.some(n=>n.tag==="expired")){
+    list.unshift({id:uid("ntf"),tag:"expired",judul:"Masa uji coba telah berakhir",isi:"Berlangganan untuk melanjutkan pencatatan tanpa batas.",ts:Date.now(),read:false});
+  }
+  save(); paintNotifDot();
+}
+function paintNotifDot(){
+  const n = myNotifs().filter(x=>!x.read).length;
+  const dot = document.getElementById("notifDot");
+  dot.textContent = n; dot.classList.toggle("hidden", n===0);
+}
+function toggleNotif(){
+  const p = document.getElementById("notifPanel");
+  if(!p.classList.contains("hidden")){ p.classList.add("hidden"); return; }
+  const list = myNotifs();
+  p.innerHTML = list.length ? list.slice(0,8).map(n=>
+      `<div class="it"><b>${esc(n.judul)}</b><small>${esc(n.isi)}</small><small>${fmtDateTime(n.ts)}</small></div>`).join("")
+    + `<div class="it center"><button class="btn btn-outline btn-sm" onclick="clearNotifs()">Tandai semua dibaca</button></div>`
+    : `<div class="it muted center">Belum ada notifikasi.</div>`;
+  p.classList.remove("hidden");
+  list.forEach(n=>n.read=true); save(); paintNotifDot();
+}
+function clearNotifs(){ const u=currentUser(); DB.notifications[u.id]=[]; save(); paintNotifDot(); document.getElementById("notifPanel").classList.add("hidden"); toast("Notifikasi dibersihkan.","info"); }
+document.addEventListener("click", e=>{
+  const p=document.getElementById("notifPanel");
+  if(p && !p.classList.contains("hidden") && !p.contains(e.target) && !e.target.closest(".icon-btn")) p.classList.add("hidden");
+});
+
+/* ---------- chart (inline SVG, responsive via viewBox) ---------- */
+function barChart(series, opts){
+  opts = opts||{};
+  const W=680, H=250, padL=8, padB=34, padT=14;
+  const max = Math.max(1, ...series.map(d=>Math.max(d.masuk,d.keluar)));
+  const n = series.length || 1;
+  const slot = (W-padL*2)/n, bw = Math.min(22, slot/3.1);
+  const scale = v => (H-padB-padT) * (v/max);
+  let bars="", labels="", grid="";
+  for(let g=0; g<=4; g++){
+    const y = padT + (H-padB-padT)*(g/4);
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padL}" y2="${y.toFixed(1)}" stroke="#E4E4D6" stroke-width="1"/>`;
+  }
+  series.forEach((d,i)=>{
+    const cx = padL + slot*i + slot/2;
+    const h1 = scale(d.masuk), h2 = scale(d.keluar);
+    const y0 = H-padB;
+    bars += `<rect x="${(cx-bw-2).toFixed(1)}" y="${(y0-h1).toFixed(1)}" width="${bw}" height="${Math.max(h1,1).toFixed(1)}" rx="4" fill="#0B5733"><title>${esc(d.label)} — Pemasukan ${rp(d.masuk)}</title></rect>`;
+    bars += `<rect x="${(cx+2).toFixed(1)}" y="${(y0-h2).toFixed(1)}" width="${bw}" height="${Math.max(h2,1).toFixed(1)}" rx="4" fill="#F2B927"><title>${esc(d.label)} — Pengeluaran ${rp(d.keluar)}</title></rect>`;
+    labels += `<text x="${cx.toFixed(1)}" y="${H-12}" text-anchor="middle" font-size="12" fill="#6B7A72" font-family="Poppins,sans-serif">${esc(d.label)}</text>`;
+  });
+  return `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+    aria-label="Grafik pemasukan versus pengeluaran">${grid}${bars}${labels}</svg></div>
+    <div class="legend"><span><i style="background:#0B5733"></i>Pemasukan</span><span><i style="background:#F2B927"></i>Pengeluaran</span></div>`;
+}
+
+/* ---------- router ---------- */
+function go(k){
+  const u = currentUser();
+  if(!u){ showLanding(); return; }
+  const allowed = navFor().flatMap(g=>g.items.map(i=>i.k));
+  if(!allowed.includes(k)){
+    if(k==="panduan"){ /*ok: dapat diakses semua pengguna dari Setelan*/ }
+    else if(k.startsWith("admin") && !isAdmin(u)){ toast("Halaman admin hanya untuk Administrator.","error"); k = "beranda"; }
+    else if(!isAdmin(u) && ["beranda","tambah","labarugi","usaha","pribadi","riwayat","kategori","bulanan","tahunan","arsip","paket","setelan","bantuanApp","panduan"].includes(k)){ /*ok*/ }
+    else k = isAdmin(u) ? "admin" : "beranda";
+  }
+  route = k;
+  closeSidebar();
+  document.getElementById("notifPanel").classList.add("hidden");
+  renderSidebar();
+  const P = PAGES[k] || PAGES.beranda;
+  document.getElementById("pgTitle").textContent = P.title;
+  document.getElementById("pgInfo").innerHTML = infoTipHTML(k, P.title);
+  document.getElementById("page").innerHTML = P.render();
+  if(P.after) P.after();
+  window.scrollTo(0,0);
+}
+
+/* ---------- shared partials ---------- */
+function trialBanner(){
+  const u=currentUser(); const st=subStatus(u);
+  if(st==="active"){
+    return `<div class="trial-banner"><div class="grow"><b>Langganan Aktif — ${esc(planName(u))}</b>
+      <p>Berlaku sampai ${fmtDate((u.subEnd||"").slice(0,10))}. Semua fitur terbuka tanpa batas transaksi.</p></div>
+      <span class="pill active">Aktif</span></div>`;
+  }
+  if(st==="expired"){
+    return `<div class="trial-banner expired"><div class="grow"><b>Uji Coba Gratis 30 Hari telah berakhir</b>
+      <p>Berlangganan Rp24.000 per 6 bulan untuk melanjutkan pencatatan tanpa batas dan download laporan PDF.</p></div>
+      <button class="btn btn-gold" onclick="go('paket')">Berlangganan Sekarang</button></div>`;
+  }
+  const left = trialLeft(u), pct = clamp(Math.round(left/TRIAL_DAYS*100),4,100);
+  return `<div class="trial-banner"><div class="grow"><b>Masa Uji Coba — sisa ${left} hari</b>
+    <p>Uji Coba Gratis 30 Hari berakhir ${fmtDate(u.trialEnd.slice(0,10))}. Batas 100 transaksi selama masa uji coba.</p>
+    <div class="bar-lite mt8" style="max-width:280px"><i style="width:${pct}%"></i></div></div>
+    <button class="btn btn-gold" onclick="go('paket')">Lihat Paket</button></div>`;
+}
+function txRow(t, withActions){
+  return `<div class="tx"><div class="ti ${t.jenis==="pemasukan"?"in":"out"}">${ic(t.jenis==="pemasukan"?"download":"card","ic ic-sm")}</div>
+    <div class="grow"><b class="truncate">${esc(t.deskripsi||t.kategori)}</b>
+      <small>${esc(t.kategori)} • <span class="pill ${t.akunKeuangan}">${t.akunKeuangan==="usaha"?"Usaha":"Pribadi"}</span></small></div>
+    <div class="amt ${t.jenis==="pemasukan"?"tone-green":"tone-red"}">${signed(t.nominal,t.jenis)}<small class="muted">${fmtDate(t.tanggal)}</small></div>
+    ${withActions?`<div class="row" style="gap:6px">
+      <button class="icon-btn" title="Detail" onclick="txDetail('${t.id}')">${ic("eye","ic ic-sm")}</button>
+      <button class="icon-btn" title="Edit" onclick="txEdit('${t.id}')">${ic("edit","ic ic-sm")}</button>
+      <button class="icon-btn" title="Hapus" onclick="txDelete('${t.id}')">${ic("trash","ic ic-sm")}</button></div>`:""}</div>`;
+}
+function emptyState(msg, cta){
+  return `<div class="empty">${ic("inbox","ic")}<p>${esc(msg)}</p>
+    ${cta?`<button class="btn btn-green btn-sq" onclick="go('tambah')">+ Tambah Transaksi</button>`:""}</div>`;
+}
+function monthOptions(sel){
+  const set = new Set(myTx().map(t=>ym(t.tanggal)));
+  set.add(todayISO().slice(0,7));
+  return [...set].sort().reverse().map(p=>{
+    const [y,m]=p.split("-");
+    return `<option value="${p}" ${p===sel?"selected":""}>${MONTHS[+m-1]} ${y}</option>`;
+  }).join("");
+}
+function yearOptions(sel){
+  const set = new Set(myTx().map(t=>t.tanggal.slice(0,4)));
+  set.add(String(new Date().getFullYear()));
+  return [...set].sort().reverse().map(y=>`<option ${String(y)===String(sel)?"selected":""}>${y}</option>`).join("");
+}
+
+/* ================= PAGES ================= */
+const PAGES = {};
+let uiState = { period: todayISO().slice(0,7), year: String(new Date().getFullYear()),
+  filters:{q:"",jenis:"",kategori:"",akun:"",bulan:"",tahun:"",sort:"tanggal_desc"}, editingTx:null, buktiData:null };
+
+/* ---- Beranda ---- */
+PAGES.beranda = { title:"Beranda", render(){
+  const list = myTx();
+  const p = uiState.period;
+  const mo = list.filter(t=>ym(t.tanggal)===p);
+  const t = totals(mo);
+  const pl = profitLoss(list, p);
+  const prevP = (()=>{ const [y,m]=p.split("-").map(Number); const d=new Date(y,m-2,1); return d.toISOString().slice(0,7); })();
+  const prevT = totals(list.filter(x=>ym(x.tanggal)===prevP));
+  const dM = prevT.masuk>0 ? ((t.masuk-prevT.masuk)/prevT.masuk*100) : null;
+  const dK = prevT.keluar>0 ? ((t.keluar-prevT.keluar)/prevT.keluar*100) : null;
+  const recent = list.slice().sort((a,b)=> b.tanggal.localeCompare(a.tanggal) || b.createdAt.localeCompare(a.createdAt)).slice(0,5);
+  const series = monthlySeries(list, p.slice(0,4)).filter(s=>s.count>0 || s.periode<=p).slice(-6).map(s=>({label:s.bulan.slice(0,3), masuk:s.masuk, keluar:s.keluar}));
+  const [yy,mm] = p.split("-");
+  return trialBanner() + `
+  <div class="spread no-print" style="margin-bottom:16px;flex-wrap:wrap">
+    <p class="page-sub" style="margin:0">Ringkasan keuangan ${MONTHS[+mm-1]} ${yy} untuk ${esc(myProfile().namaUsaha||"usaha Anda")}.</p>
+    <select class="input" style="max-width:200px" onchange="uiState.period=this.value;go('beranda')">${monthOptions(p)}</select>
+  </div>
+  <div class="cards4">
+    <div class="stat"><div class="lb">${ic("download","ic ic-sm")}Total Pemasukan</div><div class="vl pos">${rp(t.masuk)}</div>
+      <div class="sub">${dM===null?"Belum ada pembanding":(dM>=0?"+":"")+dM.toFixed(0)+"% vs bulan lalu"}</div></div>
+    <div class="stat"><div class="lb">${ic("card","ic ic-sm")}Total Pengeluaran</div><div class="vl neg">${rp(t.keluar)}</div>
+      <div class="sub">${dK===null?"Belum ada pembanding":(dK>=0?"+":"")+dK.toFixed(0)+"% vs bulan lalu"}</div></div>
+    <div class="stat"><div class="lb">${ic("chart","ic ic-sm")}Laba Bersih (Usaha)</div><div class="vl ${pl.laba>=0?"pos":"neg"}">${(pl.laba<0?"−":"")+rp(pl.laba)}</div>
+      <div class="sub">Margin ${pl.margin.toFixed(0)}%</div></div>
+    <div class="stat"><div class="lb">${ic("doc","ic ic-sm")}Total Transaksi</div><div class="vl">${t.count}</div>
+      <div class="sub">Bulan ini</div></div>
+  </div>
+  <div class="split mt16">
+    <div class="card"><div class="spread"><h3>Grafik Pemasukan vs Pengeluaran</h3><small class="muted">${MONTHS[+mm-1]} ${yy}</small></div>
+      <div class="mt16">${series.length?barChart(series):emptyState("Belum ada data untuk grafik.",true)}</div></div>
+    <div class="card"><div class="spread"><h3>Transaksi Terbaru</h3>
+      <button class="btn btn-outline btn-sm" onclick="go('riwayat')">Lihat semua →</button></div>
+      <div class="mt8">${recent.length? recent.map(t=>txRow(t,false)).join("") : emptyState("Belum ada transaksi.",true)}</div></div>
+  </div>`;
+}};
+
+/* ---- Tambah / Edit Transaksi ---- */
+PAGES.tambah = { title:"Tambah Transaksi", render(){
+  const ed = uiState.editingTx ? myTx().find(t=>t.id===uiState.editingTx) : null;
+  const jenis = ed ? ed.jenis : "pemasukan";
+  const u = currentUser();
+  const overLimit = subStatus(u)==="trial" && myTx().length>=100;
+  const expired = subStatus(u)==="expired";
+  return `<p class="page-sub">${ed?"Ubah detail transaksi di bawah.":"Isi detail transaksi di bawah. Foto struk/nota opsional."}</p>
+  ${expired?`<div class="trial-banner expired"><div class="grow"><b>Masa uji coba berakhir</b><p>Anda masih dapat melihat data, namun pencatatan baru memerlukan langganan aktif.</p></div>
+    <button class="btn btn-gold" onclick="go('paket')">Berlangganan</button></div>`:""}
+  ${overLimit?`<div class="trial-banner"><div class="grow"><b>Batas 100 transaksi masa uji coba tercapai</b><p>Berlangganan untuk transaksi tidak terbatas.</p></div>
+    <button class="btn btn-gold" onclick="go('paket')">Berlangganan</button></div>`:""}
+  <div class="card" style="max-width:640px;margin:0 auto">
+    <form onsubmit="saveTx(event)" novalidate>
+      <div class="field"><label>Jenis Transaksi</label>
+        <div class="seg" id="segJenis">
+          <button type="button" data-v="pemasukan" class="${jenis==="pemasukan"?"on":""}" onclick="setJenis('pemasukan')">↑ Pemasukan</button>
+          <button type="button" data-v="pengeluaran" class="${jenis==="pengeluaran"?"on":""}" onclick="setJenis('pengeluaran')">↓ Pengeluaran</button>
+        </div><input type="hidden" id="tx_jenis" value="${jenis}"></div>
+      <div class="grid2">
+        <div class="field"><label for="tx_tanggal">Tanggal</label><input class="input" type="date" id="tx_tanggal" value="${ed?ed.tanggal:todayISO()}" max="${todayISO()}"><div class="err-msg" id="e_tx_tanggal"></div></div>
+        <div class="field"><label for="tx_nominal">Nominal (Rp)</label><input class="input" type="number" id="tx_nominal" min="1" step="1" placeholder="0" value="${ed?ed.nominal:""}"><div class="err-msg" id="e_tx_nominal"></div></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="tx_kategori">Kategori</label><select class="input" id="tx_kategori"></select><div class="err-msg" id="e_tx_kategori"></div></div>
+        <div class="field"><label for="tx_akun">Akun Keuangan</label>
+          <select class="input" id="tx_akun"><option value="usaha" ${ed&&ed.akunKeuangan==="usaha"?"selected":""}>Keuangan Usaha</option>
+            <option value="pribadi" ${ed&&ed.akunKeuangan==="pribadi"?"selected":""}>Keuangan Pribadi</option></select>
+          <div class="err-msg" id="e_tx_akun"></div></div>
+      </div>
+      <div class="field"><label for="tx_deskripsi">Deskripsi</label>
+        <textarea class="input" id="tx_deskripsi" placeholder="Contoh: penjualan beras 5kg">${ed?esc(ed.deskripsi):""}</textarea>
+        <div class="err-msg" id="e_tx_deskripsi"></div></div>
+      <div class="field"><label>Foto Transaksi (Struk/Nota) <span class="hint">— opsional, maks. 2 MB</span></label>
+        <div class="drop" onclick="document.getElementById('tx_file').click()">
+          ${ic("camera")}<div style="font-weight:600;margin-top:6px">Klik untuk upload foto</div>
+          <small class="muted">JPG / PNG / WEBP</small></div>
+        <input type="file" id="tx_file" accept="image/*" class="hidden" onchange="onPickFile(event)">
+        <div class="row mt8" style="flex-wrap:wrap">
+          <button type="button" class="btn btn-outline btn-sq btn-sm" onclick="document.getElementById('tx_file').click()">${ic("download","ic ic-sm")}Upload Bukti Transaksi</button>
+          <button type="button" class="btn btn-outline btn-sq btn-sm" onclick="openCamera()">${ic("camera","ic ic-sm")}Ambil Foto dari Kamera</button>
+        </div>
+        <div class="err-msg" id="e_tx_file"></div>
+        <div id="prevBox" class="prev ${uiState.buktiData?"":"hidden"}">
+          <img id="prevImg" src="${uiState.buktiData||""}" alt="Preview bukti transaksi">
+          <button type="button" class="btn btn-danger btn-sm mt8" onclick="clearBukti()">Hapus Foto</button></div>
+      </div>
+      <div class="row mt16" style="flex-wrap:wrap">
+        <button class="btn btn-green btn-sq" type="submit" ${(expired||overLimit)&&!ed?"disabled":""}>${ic("check","ic ic-sm")}${ed?"Simpan Perubahan":"Simpan Transaksi"}</button>
+        <button class="btn btn-outline btn-sq" type="button" onclick="resetTxForm()">Reset</button>
+        ${ed?`<button class="btn btn-outline btn-sq" type="button" onclick="uiState.editingTx=null;uiState.buktiData=null;go('riwayat')">Batal</button>`:""}
+      </div>
+    </form>
+  </div>`;
+}, after(){
+  fillCats();
+  const ed = uiState.editingTx ? myTx().find(t=>t.id===uiState.editingTx) : null;
+  if(ed){ uiState.buktiData = ed.bukti||null; const s=document.getElementById("tx_kategori"); if(s) s.value = ed.kategori;
+    if(ed.bukti){ document.getElementById("prevImg").src=ed.bukti; document.getElementById("prevBox").classList.remove("hidden"); } }
+}};
+function setJenis(v){
+  document.getElementById("tx_jenis").value=v;
+  document.querySelectorAll("#segJenis button").forEach(b=>b.classList.toggle("on", b.dataset.v===v));
+  fillCats();
+}
+function fillCats(){
+  const j = document.getElementById("tx_jenis").value;
+  const sel = document.getElementById("tx_kategori");
+  const cats = myCats().filter(c=>c.jenis===j);
+  sel.innerHTML = `<option value="">Pilih Kategori</option>` + cats.map(c=>`<option>${esc(c.nama)}</option>`).join("");
+}
+/* TODO: CONNECT FILE STORAGE — bukti transaksi masih disimpan sebagai base64
+   di localStorage (batas 2 MB). Untuk produksi, unggah file ke object storage
+   dan simpan URL-nya pada field `proof`/`bukti`. */
+function onPickFile(e){
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  if(!/^image\//.test(f.type)){ setErr("tx_file","File harus berupa gambar (JPG/PNG/WEBP)."); return; }
+  if(f.size > 2*1024*1024){ setErr("tx_file","Ukuran file maksimal 2 MB."); return; }
+  setErr("tx_file","");
+  const r = new FileReader();
+  r.onload = () => { uiState.buktiData = r.result; document.getElementById("prevImg").src = r.result;
+    document.getElementById("prevBox").classList.remove("hidden"); toast("Bukti transaksi siap disimpan.","info"); };
+  r.readAsDataURL(f);
+}
+function clearBukti(){ uiState.buktiData=null; document.getElementById("prevBox").classList.add("hidden"); document.getElementById("tx_file").value=""; }
+async function openCamera(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    toast("Kamera tidak tersedia di browser ini. Gunakan upload file.","info"); document.getElementById("tx_file").click(); return;
+  }
+  let stream;
+  try{ stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); }
+  catch(err){ toast("Izin kamera ditolak. Menggunakan upload file sebagai gantinya.","info"); document.getElementById("tx_file").click(); return; }
+  modal(`<h3>Ambil Foto Struk</h3><p class="muted" style="font-size:13.5px">Arahkan kamera ke struk/nota lalu klik Jepret.</p>
+    <video id="camV" autoplay playsinline style="width:100%;border-radius:12px;background:#000;margin-top:10px"></video>
+    <div class="modal-act"><button class="btn btn-outline" onclick="stopCamera()">Batal</button>
+    <button class="btn btn-green" onclick="snap()">${ic("camera","ic ic-sm")}Jepret</button></div>`);
+  const v = document.getElementById("camV"); v.srcObject = stream; window.__stream = stream;
+}
+function stopCamera(){ if(window.__stream){ window.__stream.getTracks().forEach(t=>t.stop()); window.__stream=null; } closeModal(); }
+function snap(){
+  const v=document.getElementById("camV");
+  const c=document.createElement("canvas");
+  c.width=v.videoWidth||640; c.height=v.videoHeight||480;
+  c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+  uiState.buktiData = c.toDataURL("image/jpeg",0.7);
+  stopCamera();
+  document.getElementById("prevImg").src = uiState.buktiData;
+  document.getElementById("prevBox").classList.remove("hidden");
+  toast("Foto berhasil diambil.");
+}
+function resetTxForm(){
+  uiState.buktiData=null; uiState.editingTx=null; go("tambah"); toast("Formulir direset.","info");
+}
+function saveTx(e){
+  if(e) e.preventDefault();
+  const u = currentUser();
+  const jenis=val("tx_jenis"), tanggal=val("tx_tanggal"), nominal=val("tx_nominal"),
+        kategori=val("tx_kategori"), akun=val("tx_akun"), desk=val("tx_deskripsi");
+  let ok = setErr("tx_tanggal", !tanggal?"Tanggal wajib diisi.":(tanggal>todayISO()?"Tanggal tidak boleh di masa depan.":""));
+  const num = Number(nominal);
+  ok = setErr("tx_nominal", !nominal?"Nominal wajib diisi.":(!isFinite(num)||num<=0?"Nominal harus lebih dari 0.":(num>1e12?"Nominal terlalu besar.":""))) && ok;
+  ok = setErr("tx_kategori", !kategori?"Kategori wajib dipilih.":"") && ok;
+  ok = setErr("tx_akun", !akun?"Akun keuangan wajib dipilih.":"") && ok;
+  ok = setErr("tx_deskripsi", desk.length>140?"Deskripsi maksimal 140 karakter.":"") && ok;
+  if(!ok){ toast("Periksa kembali data yang belum sesuai.","error"); return false; }
+
+  if(uiState.editingTx){
+    const t = DB.transactions.find(x=>x.id===uiState.editingTx);
+    Object.assign(t,{jenis,tanggal,nominal:num,kategori,akunKeuangan:akun,deskripsi:desk||kategori,bukti:uiState.buktiData||null});
+    uiState.editingTx=null; uiState.buktiData=null; save();
+    toast("Transaksi berhasil diperbarui."); go("riwayat"); return true;
+  }
+  if(subStatus(u)==="expired"){ toast("Masa uji coba telah berakhir. Berlangganan untuk mencatat transaksi baru.","error"); return false; }
+  if(subStatus(u)==="trial" && myTx().length>=100){ toast("Batas 100 transaksi masa uji coba tercapai.","error"); return false; }
+  DB.transactions.push({id:uid("trx"),userId:u.id,tanggal,jenis,kategori,nominal:num,akunKeuangan:akun,
+    deskripsi:desk||kategori,bukti:uiState.buktiData||null,createdAt:new Date().toISOString()});
+  uiState.buktiData=null; save();
+  toast("Transaksi berhasil disimpan.");
+  uiState.period = ym(tanggal);
+  go("beranda"); return true;
+}
+function txDetail(id){
+  const t = myTx().find(x=>x.id===id); if(!t) return;
+  modal(`<h3>Detail Transaksi</h3>
+    <div class="mt16">
+      <div class="kv"><b>Jenis</b><span class="v ${t.jenis==="pemasukan"?"tone-green":"tone-red"}">${t.jenis==="pemasukan"?"Pemasukan":"Pengeluaran"}</span></div>
+      <div class="kv"><b>Tanggal</b><span class="v">${fmtDate(t.tanggal)}</span></div>
+      <div class="kv"><b>Nominal</b><span class="v">${rp(t.nominal)}</span></div>
+      <div class="kv"><b>Kategori</b><span class="v">${esc(t.kategori)}</span></div>
+      <div class="kv"><b>Akun Keuangan</b><span class="v">${t.akunKeuangan==="usaha"?"Keuangan Usaha":"Keuangan Pribadi"}</span></div>
+      <div class="kv"><b>Deskripsi</b><span class="v">${esc(t.deskripsi||"-")}</span></div>
+      <div class="kv"><b>Dicatat</b><span class="v">${fmtDateTime(t.createdAt)}</span></div>
+    </div>
+    ${t.bukti?`<div class="mt16"><b style="font-size:13.5px">Bukti Transaksi</b><div class="prev"><img src="${t.bukti}" alt="Bukti transaksi ${esc(t.deskripsi)}"></div></div>`
+      :`<p class="muted mt16" style="font-size:13px">Tidak ada foto bukti untuk transaksi ini.</p>`}
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Tutup</button>
+      <button class="btn btn-green" onclick="closeModal();txEdit('${t.id}')">Edit</button></div>`);
+}
+function txEdit(id){ uiState.editingTx=id; uiState.buktiData=null; go("tambah"); }
+function txDelete(id){
+  const t = myTx().find(x=>x.id===id); if(!t) return;
+  confirmDialog("Hapus transaksi?", `"${t.deskripsi||t.kategori}" sebesar ${rp(t.nominal)} akan dihapus permanen.`, ()=>{
+    DB.transactions = DB.transactions.filter(x=>x.id!==id); save(); toast("Transaksi berhasil dihapus."); go(route);
+  },"Ya, Hapus");
+}
+
+/* ---- Riwayat Transaksi ---- */
+function applyFilters(){
+  const f = uiState.filters;
+  let list = myTx();
+  if(f.q){ const q=f.q.toLowerCase(); list = list.filter(t=> (t.deskripsi||"").toLowerCase().includes(q) || t.kategori.toLowerCase().includes(q)); }
+  if(f.jenis) list = list.filter(t=>t.jenis===f.jenis);
+  if(f.kategori) list = list.filter(t=>t.kategori===f.kategori);
+  if(f.akun) list = list.filter(t=>t.akunKeuangan===f.akun);
+  if(f.tanggal) list = list.filter(t=>t.tanggal===f.tanggal);
+  if(f.bulan) list = list.filter(t=>t.tanggal.slice(5,7)===f.bulan);
+  if(f.tahun) list = list.filter(t=>t.tanggal.slice(0,4)===f.tahun);
+  const [key,dir] = f.sort.split("_");
+  list.sort((a,b)=>{
+    let r = key==="nominal" ? a.nominal-b.nominal : String(a[key==="tanggal"?"tanggal":"kategori"]).localeCompare(String(b[key==="tanggal"?"tanggal":"kategori"]));
+    return dir==="desc" ? -r : r;
+  });
+  return list;
+}
+function setFilter(k,v){ uiState.filters[k]=v; go("riwayat"); }
+function resetFilters(){ uiState.filters={q:"",jenis:"",kategori:"",akun:"",tanggal:"",bulan:"",tahun:"",sort:"tanggal_desc"}; go("riwayat"); toast("Filter direset.","info"); }
+PAGES.riwayat = { title:"Riwayat Transaksi", render(){
+  const f = uiState.filters, list = applyFilters(), t = totals(list);
+  const cats = myCats();
+  return `<p class="page-sub">Cari, filter, dan kelola seluruh transaksi Anda (${list.length} dari ${myTx().length} transaksi).</p>
+  <div class="card">
+    <div class="filters">
+      <input class="input" placeholder="Cari deskripsi / kategori..." value="${esc(f.q)}" oninput="uiState.filters.q=this.value;renderRiwayatList()">
+      <select class="input" onchange="setFilter('jenis',this.value)"><option value="">Semua Jenis</option>
+        <option value="pemasukan" ${f.jenis==="pemasukan"?"selected":""}>Pemasukan</option>
+        <option value="pengeluaran" ${f.jenis==="pengeluaran"?"selected":""}>Pengeluaran</option></select>
+      <select class="input" onchange="setFilter('kategori',this.value)"><option value="">Semua Kategori</option>
+        ${cats.map(c=>`<option ${f.kategori===c.nama?"selected":""}>${esc(c.nama)}</option>`).join("")}</select>
+      <select class="input" onchange="setFilter('akun',this.value)"><option value="">Usaha & Pribadi</option>
+        <option value="usaha" ${f.akun==="usaha"?"selected":""}>Keuangan Usaha</option>
+        <option value="pribadi" ${f.akun==="pribadi"?"selected":""}>Keuangan Pribadi</option></select>
+      <input class="input" type="date" value="${esc(f.tanggal||"")}" onchange="setFilter('tanggal',this.value)">
+      <select class="input" onchange="setFilter('bulan',this.value)"><option value="">Semua Bulan</option>
+        ${MONTHS.map((m,i)=>`<option value="${String(i+1).padStart(2,"0")}" ${f.bulan===String(i+1).padStart(2,"0")?"selected":""}>${m}</option>`).join("")}</select>
+      <select class="input" onchange="setFilter('tahun',this.value)"><option value="">Semua Tahun</option>${yearOptions(f.tahun)}</select>
+      <select class="input" onchange="setFilter('sort',this.value)">
+        <option value="tanggal_desc" ${f.sort==="tanggal_desc"?"selected":""}>Terbaru</option>
+        <option value="tanggal_asc" ${f.sort==="tanggal_asc"?"selected":""}>Terlama</option>
+        <option value="nominal_desc" ${f.sort==="nominal_desc"?"selected":""}>Nominal terbesar</option>
+        <option value="nominal_asc" ${f.sort==="nominal_asc"?"selected":""}>Nominal terkecil</option>
+        <option value="kategori_asc" ${f.sort==="kategori_asc"?"selected":""}>Kategori A–Z</option></select>
+    </div>
+    <div class="row mt16" style="flex-wrap:wrap">
+      <button class="btn btn-outline btn-sq btn-sm" onclick="resetFilters()">Reset Filter</button>
+      <span class="muted" style="font-size:13px">Pemasukan <b class="tone-green">${rp(t.masuk)}</b> • Pengeluaran <b class="tone-red">${rp(t.keluar)}</b> • Selisih <b>${(t.saldo<0?"−":"")+rp(t.saldo)}</b></span>
+    </div>
+    <div id="riwayatList" class="mt16">${list.length? list.map(x=>txRow(x,true)).join("") : emptyState("Belum ada transaksi yang cocok dengan filter.",true)}</div>
+  </div>`;
+}};
+function renderRiwayatList(){
+  const list = applyFilters();
+  document.getElementById("riwayatList").innerHTML = list.length? list.map(x=>txRow(x,true)).join("") : emptyState("Belum ada transaksi yang cocok dengan filter.",true);
+}
+
+/* ---- Keuangan Usaha / Pribadi ---- */
+function keuanganPage(akun){
+  const label = akun==="usaha" ? "Usaha" : "Pribadi";
+  const list = myTx().filter(t=>t.akunKeuangan===akun).sort((a,b)=>b.tanggal.localeCompare(a.tanggal));
+  const t = totals(list);
+  return `<p class="page-sub">${akun==="usaha"?"Catat keuangan khusus untuk operasional usaha Anda.":"Keuangan pribadi Anda, terpisah dari keuangan usaha."}</p>
+  <div class="cards3">
+    <div class="stat"><div class="lb">${ic(akun==="usaha"?"store":"person","ic ic-sm")}Saldo ${label}</div><div class="vl ${t.saldo>=0?"pos":"neg"}">${(t.saldo<0?"−":"")+rp(t.saldo)}</div><div class="sub">${t.count} transaksi</div></div>
+    <div class="stat"><div class="lb">${ic("download","ic ic-sm")}Pemasukan ${label}</div><div class="vl pos">${rp(t.masuk)}</div></div>
+    <div class="stat"><div class="lb">${ic("card","ic ic-sm")}Pengeluaran ${label}</div><div class="vl neg">${rp(t.keluar)}</div></div>
+  </div>
+  ${akun==="pribadi"?`<div class="card mt16" style="background:#FDF8EA;border:1px solid #F0DDA8"><b style="font-size:14px">Catatan penting</b>
+    <p class="muted" style="font-size:13.5px;margin:6px 0 0">Transaksi pribadi tidak dihitung dalam laporan laba rugi usaha, sehingga laba usaha tetap akurat.</p></div>`:""}
+  <div class="card mt16"><div class="spread"><h3>Riwayat Transaksi ${label}</h3>
+    <button class="btn btn-outline btn-sm" onclick="go('tambah')">+ Tambah</button></div>
+    <div class="mt8">${list.length? list.map(x=>txRow(x,true)).join("") : emptyState("Belum ada transaksi "+label.toLowerCase()+".",true)}</div></div>`;
+}
+PAGES.usaha = { title:"Keuangan Usaha", render:()=>keuanganPage("usaha") };
+PAGES.pribadi = { title:"Keuangan Pribadi", render:()=>keuanganPage("pribadi") };
+
+/* ---- Kategori ---- */
+PAGES.kategori = { title:"Kategori", render(){
+  const cats = myCats();
+  const block = (jenis,title) => {
+    const rows = cats.filter(c=>c.jenis===jenis);
+    return `<div class="card"><div class="spread"><h3>${title}</h3>
+      <button class="btn btn-outline btn-sm" onclick="catForm('${jenis}')">+ Tambah</button></div>
+      <div class="mt8">${rows.length? rows.map(c=>`<div class="tx"><div class="ti ${jenis==="pemasukan"?"in":"out"}">${ic("tag","ic ic-sm")}</div>
+        <div class="grow"><b>${esc(c.nama)}</b><small>${myTx().filter(t=>t.kategori===c.nama).length} transaksi menggunakan kategori ini</small></div>
+        <div class="row" style="gap:6px"><button class="icon-btn" title="Edit" onclick="catForm('${jenis}','${c.id}')">${ic("edit","ic ic-sm")}</button>
+        <button class="icon-btn" title="Hapus" onclick="catDelete('${c.id}')">${ic("trash","ic ic-sm")}</button></div></div>`).join("")
+        : `<div class="empty">Belum ada kategori.</div>`}</div></div>`;
+  };
+  return `<p class="page-sub">Kelola kategori pemasukan dan pengeluaran sesuai kebutuhan usaha Anda.</p>
+  <div class="cards2">${block("pemasukan","Kategori Pemasukan")}${block("pengeluaran","Kategori Pengeluaran")}</div>`;
+}};
+function catForm(jenis, id){
+  const c = id ? myCats().find(x=>x.id===id) : null;
+  modal(`<h3>${c?"Edit":"Tambah"} Kategori ${jenis==="pemasukan"?"Pemasukan":"Pengeluaran"}</h3>
+    <div class="field mt16"><label for="cat_nama">Nama Kategori</label>
+      <input class="input" id="cat_nama" value="${c?esc(c.nama):""}" placeholder="Contoh: Penjualan Online" maxlength="40">
+      <div class="err-msg" id="e_cat_nama"></div></div>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+      <button class="btn btn-green" onclick="catSave('${jenis}','${id||""}')">Simpan</button></div>`);
+  setTimeout(()=>document.getElementById("cat_nama").focus(),40);
+}
+function catSave(jenis,id){
+  const nama = val("cat_nama");
+  if(!setErr("cat_nama", !nama?"Nama kategori wajib diisi.":(nama.length<3?"Minimal 3 karakter.":
+      (myCats().some(c=>c.nama.toLowerCase()===nama.toLowerCase() && c.id!==id)?"Kategori sudah ada.":"")))) return false;
+  const u=currentUser();
+  if(id){ const c=DB.categories[u.id].find(x=>x.id===id); const old=c.nama; c.nama=nama;
+    DB.transactions.forEach(t=>{ if(t.userId===u.id && t.kategori===old) t.kategori=nama; });
+    toast("Kategori berhasil diperbarui."); }
+  else { DB.categories[u.id].push({id:uid("cat"),nama,jenis}); toast("Kategori berhasil ditambahkan."); }
+  save(); closeModal(); go("kategori"); return true;
+}
+function catDelete(id){
+  const c = myCats().find(x=>x.id===id); if(!c) return;
+  const used = myTx().filter(t=>t.kategori===c.nama).length;
+  confirmDialog("Hapus kategori?", used? `Kategori "${c.nama}" masih digunakan ${used} transaksi. Transaksi tersebut akan dipindah ke kategori "Lainnya".`
+    : `Kategori "${c.nama}" akan dihapus.`, ()=>{
+    const u=currentUser();
+    DB.transactions.forEach(t=>{ if(t.userId===u.id && t.kategori===c.nama) t.kategori="Lainnya"; });
+    DB.categories[u.id] = DB.categories[u.id].filter(x=>x.id!==id);
+    save(); toast("Kategori berhasil dihapus."); go("kategori");
+  },"Ya, Hapus");
+}
+
+/* ---- Laporan Laba Rugi ---- */
+function prevPeriod(p){ const [y,m]=p.split("-").map(Number); const d=new Date(y,m-2,1); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function plTable(pl, period, biz){
+  const [y,m]=period.split("-");
+  const rows = (arr,tone) => arr.filter(r=>r.nilai>0).map(r=>
+    `<tr><td class="ind">${esc(r.nama)}</td><td style="text-align:right" class="${tone}">${rp(r.nilai)}</td></tr>`).join("")
+    || `<tr><td class="ind muted">Belum ada catatan</td><td style="text-align:right" class="muted">Rp 0</td></tr>`;
+  return `<table class="report"><thead><tr><th>Keterangan</th><th style="text-align:right">Jumlah</th></tr></thead><tbody>
+    <tr><td class="grp">A. PENDAPATAN</td><td></td></tr>
+    ${rows(pl.pendapatan,"tone-green")}
+    <tr><td class="grp">Total Pendapatan</td><td style="text-align:right" class="grp">${rp(pl.totalPendapatan)}</td></tr>
+    <tr><td class="grp">B. BEBAN USAHA</td><td></td></tr>
+    ${rows(pl.beban,"tone-red")}
+    <tr><td class="grp">Total Beban</td><td style="text-align:right" class="grp">${rp(pl.totalBeban)}</td></tr>
+  </tbody></table>
+  <div class="total-bar"><div>LABA BERSIH</div><div>${(pl.laba<0?"− ":"")+rp(pl.laba)}</div></div>`;
+}
+function interpBox(itp, pl){
+  return `<div class="interp"><span class="h">${esc(itp.judul)}</span>
+    <p style="font-size:13.5px;margin:12px 0 0;color:#254032">${esc(itp.kalimat)}</p>
+    <ul>${itp.poin.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`;
+}
+PAGES.labarugi = { title:"Laporan Laba Rugi", render(){
+  const p = uiState.period, list = myTx();
+  const pl = profitLoss(list,p), prev = profitLoss(list,prevPeriod(p));
+  const itp = interpret(pl, prev);
+  const biz = myProfile();
+  const [y,m]=p.split("-");
+  const archived = DB.reports.some(r=>r.userId===currentUser().id && r.periode===p);
+  return `<div class="spread no-print" style="flex-wrap:wrap;margin-bottom:16px">
+    <p class="page-sub" style="margin:0">Laporan laba rugi bulanan usaha Anda (transaksi pribadi tidak dihitung).</p>
+    <div class="row" style="flex-wrap:wrap">
+      <select class="input" style="max-width:180px" onchange="uiState.period=this.value;go('labarugi')">${monthOptions(p)}</select>
+      <button class="btn btn-outline btn-sq" onclick="archiveReport('${p}')" ${archived?"disabled":""}>${ic("folder","ic ic-sm")}${archived?"Sudah Diarsipkan":"Arsipkan"}</button>
+      <button class="btn btn-green btn-sq" onclick="printReport('${p}')">${ic("download","ic ic-sm")}Download PDF</button>
+    </div></div>
+  <div class="split">
+    <div class="card" style="order:1">
+      <div class="spread"><h3>Laporan Laba Rugi — ${MONTHS[+m-1]} ${y}</h3><small class="muted truncate">${esc(biz.namaUsaha||"")}</small></div>
+      <div class="mt16 tbl-wrap" style="overflow-x:auto">${plTable(pl,p,biz)}</div>
+      <p class="muted mt16" style="font-size:12.5px">Dihitung otomatis dari ${pl.jumlahTransaksi} transaksi usaha pada periode ini.</p>
+    </div>
+    <div style="order:2">${interpBox(itp,pl)}</div>
+  </div>
+  <div id="printArea">${printDoc(p)}</div>`;
+}};
+function printDoc(p){
+  const biz = myProfile(), list = myTx();
+  const pl = profitLoss(list,p), itp = interpret(pl, profitLoss(list,prevPeriod(p)));
+  const [y,m]=p.split("-");
+  return `<div class="print-doc">
+    <h1>SMARTA UMKM</h1>
+    <p style="margin:2px 0"><b>${esc(biz.namaUsaha||"")}</b> — ${esc(normJenis(biz.jenisUsaha)||"")}</p>
+    <p style="margin:2px 0">${esc(biz.alamat||"")}</p>
+    <p style="margin:2px 0">Laporan Laba Rugi — Periode ${MONTHS[+m-1]} ${y}</p>
+    <hr>${plTable(pl,p,biz)}
+    <h3 style="margin-top:16px">Interpretasi Kondisi Keuangan — ${esc(itp.judul)}</h3>
+    <p>${esc(itp.kalimat)}</p><ul>${itp.poin.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    <p style="margin-top:20px;font-size:11px;color:#555">Dicetak ${fmtDateTime(Date.now())} melalui SMARTA UMKM — smartaumkm@gmail.com</p></div>`;
+}
+function printReport(p){
+  uiState.period = p;
+  const holder = document.getElementById("printArea");
+  if(holder) holder.innerHTML = printDoc(p);
+  toast("Membuka dialog cetak — pilih \"Simpan sebagai PDF\".","info");
+  setTimeout(()=>window.print(),350);
+}
+function archiveReport(p){
+  const u=currentUser(); const pl=profitLoss(myTx(),p);
+  DB.reports.push({id:uid("rpt"),userId:u.id,periode:p,pendapatan:pl.totalPendapatan,beban:pl.totalBeban,laba:pl.laba,
+    margin:pl.margin,createdAt:new Date().toISOString()});
+  save(); toast("Laporan "+p+" berhasil diarsipkan."); go("labarugi");
+}
+
+/* ---- Laporan Bulanan ---- */
+PAGES.bulanan = { title:"Laporan Bulanan", render(){
+  const y = uiState.year, list = myTx();
+  const series = monthlySeries(list,y,"usaha");
+  const filled = series.filter(s=>s.count>0);
+  return `<div class="spread no-print" style="flex-wrap:wrap;margin-bottom:16px">
+    <p class="page-sub" style="margin:0">Rekap bulanan keuangan usaha tahun ${y}.</p>
+    <select class="input" style="max-width:140px" onchange="uiState.year=this.value;go('bulanan')">${yearOptions(y)}</select></div>
+  <div class="card"><h3>Rekap Bulanan ${y}</h3>
+    <div class="tbl-wrap mt16"><table><thead><tr><th>Bulan</th><th>Transaksi</th><th style="text-align:right">Pemasukan</th>
+      <th style="text-align:right">Pengeluaran</th><th style="text-align:right">Laba / Rugi</th><th>Aksi</th></tr></thead><tbody>
+      ${filled.length? filled.map(s=>`<tr><td><b>${s.bulan}</b></td><td>${s.count}</td>
+        <td style="text-align:right" class="tone-green">${rp(s.masuk)}</td>
+        <td style="text-align:right" class="tone-red">${rp(s.keluar)}</td>
+        <td style="text-align:right" class="${s.laba>=0?"tone-green":"tone-red"}"><b>${(s.laba<0?"− ":"")+rp(s.laba)}</b></td>
+        <td><button class="btn btn-outline btn-sm" onclick="uiState.period='${s.periode}';go('labarugi')">Detail</button></td></tr>`).join("")
+        : `<tr><td colspan="6">${emptyState("Belum ada transaksi usaha pada tahun "+y+".",true)}</td></tr>`}
+    </tbody></table></div>
+    ${filled.length?`<div class="mt24">${barChart(filled.map(s=>({label:s.bulan.slice(0,3),masuk:s.masuk,keluar:s.keluar})))}</div>`:""}
+  </div>`;
+}};
+
+/* ---- Laporan Tahunan ---- */
+PAGES.tahunan = { title:"Laporan Tahunan", render(){
+  const y = uiState.year, list = myTx();
+  const series = monthlySeries(list,y,"usaha");
+  const tot = series.reduce((a,s)=>({masuk:a.masuk+s.masuk,keluar:a.keluar+s.keluar,laba:a.laba+s.laba}),{masuk:0,keluar:0,laba:0});
+  const best = series.slice().sort((a,b)=>b.laba-a.laba)[0];
+  return `<div class="spread no-print" style="flex-wrap:wrap;margin-bottom:16px">
+    <p class="page-sub" style="margin:0">Ringkasan 12 bulan keuangan usaha tahun ${y}.</p>
+    <select class="input" style="max-width:140px" onchange="uiState.year=this.value;go('tahunan')">${yearOptions(y)}</select></div>
+  <div class="cards4">
+    <div class="stat"><div class="lb">${ic("download","ic ic-sm")}Pemasukan Setahun</div><div class="vl pos">${rp(tot.masuk)}</div></div>
+    <div class="stat"><div class="lb">${ic("card","ic ic-sm")}Pengeluaran Setahun</div><div class="vl neg">${rp(tot.keluar)}</div></div>
+    <div class="stat"><div class="lb">${ic("chart","ic ic-sm")}Laba Bersih Setahun</div><div class="vl ${tot.laba>=0?"pos":"neg"}">${(tot.laba<0?"− ":"")+rp(tot.laba)}</div></div>
+    <div class="stat"><div class="lb">${ic("calendar","ic ic-sm")}Bulan Terbaik</div><div class="vl">${best&&best.laba>0?esc(best.bulan):"—"}</div>
+      <div class="sub">${best&&best.laba>0?rp(best.laba)+" laba":"Belum ada data"}</div></div>
+  </div>
+  <div class="card mt16"><h3>Visualisasi 12 Bulan — ${y}</h3><div class="mt16">${barChart(series.map(s=>({label:s.bulan.slice(0,3),masuk:s.masuk,keluar:s.keluar})))}</div></div>
+  <div class="card mt16"><h3>Rincian 12 Bulan</h3><div class="tbl-wrap mt16"><table><thead><tr><th>Bulan</th>
+    <th style="text-align:right">Pemasukan</th><th style="text-align:right">Pengeluaran</th><th style="text-align:right">Laba / Rugi</th><th>Aksi</th></tr></thead><tbody>
+    ${series.map(s=>`<tr><td><b>${s.bulan}</b></td><td style="text-align:right" class="tone-green">${rp(s.masuk)}</td>
+      <td style="text-align:right" class="tone-red">${rp(s.keluar)}</td>
+      <td style="text-align:right" class="${s.laba>=0?"tone-green":"tone-red"}"><b>${(s.laba<0?"− ":"")+rp(s.laba)}</b></td>
+      <td><button class="btn btn-outline btn-sm" onclick="uiState.period='${s.periode}';go('labarugi')">Laporan</button></td></tr>`).join("")}
+    <tr><td><b>TOTAL ${y}</b></td><td style="text-align:right"><b>${rp(tot.masuk)}</b></td><td style="text-align:right"><b>${rp(tot.keluar)}</b></td>
+      <td style="text-align:right"><b>${(tot.laba<0?"− ":"")+rp(tot.laba)}</b></td><td></td></tr>
+  </tbody></table></div></div>`;
+}};
+
+/* ---- Arsip Laporan ---- */
+PAGES.arsip = { title:"Arsip Laporan", render(){
+  const u=currentUser();
+  const mine = DB.reports.filter(r=>r.userId===u.id).sort((a,b)=>b.periode.localeCompare(a.periode));
+  const periods = [...new Set(myTx().map(t=>ym(t.tanggal)))].sort().reverse();
+  return `<p class="page-sub">Laporan yang pernah Anda arsipkan beserta seluruh periode yang tersedia.</p>
+  <div class="card"><div class="spread"><h3>Laporan Terarsip</h3><span class="muted" style="font-size:13px">${mine.length} laporan</span></div>
+    <div class="mt16">${mine.length? `<div class="tbl-wrap"><table><thead><tr><th>Periode</th><th style="text-align:right">Pendapatan</th>
+      <th style="text-align:right">Beban</th><th style="text-align:right">Laba</th><th>Diarsipkan</th><th>Aksi</th></tr></thead><tbody>
+      ${mine.map(r=>{const[y,m]=r.periode.split("-");return `<tr><td><b>${MONTHS[+m-1]} ${y}</b></td>
+        <td style="text-align:right" class="tone-green">${rp(r.pendapatan)}</td><td style="text-align:right" class="tone-red">${rp(r.beban)}</td>
+        <td style="text-align:right" class="${r.laba>=0?"tone-green":"tone-red"}"><b>${(r.laba<0?"− ":"")+rp(r.laba)}</b></td>
+        <td>${fmtDateTime(r.createdAt)}</td>
+        <td><div class="row" style="gap:6px"><button class="btn btn-outline btn-sm" onclick="uiState.period='${r.periode}';go('labarugi')">Buka</button>
+          <button class="btn btn-outline btn-sm" onclick="printReport('${r.periode}')">Cetak / PDF</button>
+          <button class="icon-btn" title="Hapus arsip" onclick="delArsip('${r.id}')">${ic("trash","ic ic-sm")}</button></div></td></tr>`;}).join("")}
+      </tbody></table></div>` : `<div class="empty">${ic("folder","ic")}<p>Belum ada laporan diarsipkan. Buka Laporan Laba Rugi lalu klik Arsipkan.</p>
+        <button class="btn btn-green btn-sq" onclick="go('labarugi')">Ke Laporan Laba Rugi</button></div>`}</div></div>
+  <div class="card mt16"><h3>Arsip Keuangan Bulan Sebelumnya</h3>
+    <div class="arsip-grid mt16">${periods.length? periods.map(p=>{const[y,m]=p.split("-");
+      const pl=profitLoss(myTx(),p);
+      return `<div class="arsip" onclick="uiState.period='${p}';go('labarugi')">${ic("calendar")}
+        <div class="grow"><b>${MONTHS[+m-1]}</b><small>${y} • Laba ${(pl.laba<0?"− ":"")+rp(pl.laba)}</small></div></div>`;}).join("")
+      : `<div class="empty">Belum ada periode transaksi.</div>`}</div></div>`;
+}};
+function delArsip(id){ confirmDialog("Hapus arsip laporan?","Data transaksi tidak terhapus, hanya arsip laporannya.",()=>{
+  DB.reports = DB.reports.filter(r=>r.id!==id); save(); toast("Arsip laporan dihapus."); go("arsip"); },"Ya, Hapus"); }
+
+/* ---- Paket Langganan ---- */
+PAGES.paket = { title:"Paket Langganan", render(){
+  const u=currentUser(), st=subStatus(u);
+  const pkgs = DB.packages.filter(p=>p.aktif);
+  const pend = latestPayment(u);
+  const banner = !pend ? "" : pend.status==="pending"
+    ? `<div class="card mt16" style="border-left:4px solid var(--gold)"><b style="font-size:14px">Pembayaran Anda sedang menunggu verifikasi.</b>
+       <p class="muted" style="font-size:13.5px;margin:6px 0 0">Diajukan ${fmtDate(String(pend.submittedAt).slice(0,10))} • ${esc(pkgName(pend.packageId))} • ${rp(pend.amount)} • Metode: ${esc(pend.method)}</p></div>`
+    : pend.status==="rejected"
+    ? `<div class="card mt16" style="border-left:4px solid var(--red)"><b style="font-size:14px">Pengajuan pembayaran ditolak.</b>
+       <p class="muted" style="font-size:13.5px;margin:6px 0 0">${pend.adminNote?"Alasan admin: "+esc(pend.adminNote):"Admin tidak menyertakan alasan."} Anda dapat mengajukan ulang.</p></div>`
+    : `<div class="card mt16" style="border-left:4px solid var(--green)"><b style="font-size:14px">Langganan aktif.</b>
+       <p class="muted" style="font-size:13.5px;margin:6px 0 0">${esc(pkgName(pend.packageId))} • Mulai ${fmtDate(String(u.subStart||pend.verifiedAt||"").slice(0,10))} • Berakhir ${fmtDate(String(u.subEnd||"").slice(0,10))} • Sisa ${Math.max(0,daysBetween(new Date(),u.subEnd||new Date().toISOString()))} hari</p></div>`;
+  return `<p class="page-sub">Status langganan, masa berlaku, dan pilihan paket SMARTA UMKM.</p>${banner}
+  <div class="cards3">
+    <div class="stat"><div class="lb">${ic("card","ic ic-sm")}Status Langganan</div>
+      <div class="mt8"><span class="pill ${st}">${statusLabel(st)}</span></div>
+      <div class="sub">${st==="trial"?"Sisa "+trialLeft(u)+" hari uji coba":st==="active"?"Langganan berjalan":"Perlu berlangganan"}</div></div>
+    <div class="stat"><div class="lb">${ic("box","ic ic-sm")}Paket Saat Ini</div><div class="vl" style="font-size:20px">${esc(planName(u))}</div></div>
+    <div class="stat"><div class="lb">${ic("calendar","ic ic-sm")}Masa Berlaku</div><div class="vl" style="font-size:20px">
+      ${st==="active"? fmtDate((u.subEnd||"").slice(0,10)) : fmtDate(u.trialEnd.slice(0,10))}</div>
+      <div class="sub">${st==="active"?"Berakhir":"Uji coba berakhir"}</div></div>
+  </div>
+  <div class="cards2 mt16">${pkgs.map(p=>`<div class="card">
+    <div class="spread"><h3>${esc(p.nama)}</h3>${p.harga>0?`<span class="pill trial">Paling Populer</span>`:""}</div>
+    <div class="vl" style="font-family:var(--serif);font-size:28px;margin-top:8px">${p.harga>0?rp(p.harga):"Gratis"}</div>
+    <small class="muted">per ${p.durasi} ${p.satuan}${p.harga>0?" (≈ "+rp(p.harga/p.durasi)+"/bulan)":""}</small>
+    <ul style="list-style:none;padding:0;margin:16px 0;display:grid;gap:9px">
+      ${p.fitur.map(f=>`<li class="row" style="font-size:13.5px">${ic("check","ic ic-sm")}<span>${esc(f)}</span></li>`).join("")}
+      <li class="row" style="font-size:13.5px">${ic("check","ic ic-sm")}<span>${p.batas>0?"Batas "+p.batas+" transaksi":"Transaksi tidak terbatas"}</span></li>
+    </ul>
+    ${p.harga>0
+      ? (st==="active" && u.plan===p.id
+        ? `<button class="btn btn-outline btn-sq btn-block" disabled>Paket Aktif</button>
+           <button class="btn btn-outline btn-sq btn-block mt8" onclick="cancelSub()">Batalkan Langganan</button>`
+        : (pend && pend.status==="pending"
+          ? `<button class="btn btn-outline btn-sq btn-block" disabled>Menunggu Verifikasi</button>`
+          : `<button class="btn btn-gold btn-sq btn-block" onclick="subscribeStart('${p.id}')">Berlangganan Sekarang</button>`))
+      : `<button class="btn btn-outline btn-sq btn-block" disabled>${st==="trial"?"Uji Coba Sedang Berjalan":"Uji Coba Sudah Digunakan"}</button>`}
+  </div>`).join("")}</div>
+  <div class="card mt16"><b style="font-size:14px">Cara pembayaran</b>
+    <p class="muted" style="font-size:13.5px;margin:6px 0 0">Pembayaran dilakukan secara manual melalui WhatsApp admin. Pilih paket, klik <b>Bayar melalui WhatsApp</b>, lalu lakukan pembayaran dan konfirmasi bersama admin. Langganan akan diaktifkan admin setelah pembayaran diterima.</p></div>`;
+}};
+function pkgName(id){ const p=DB.packages.find(x=>x.id===id); return p?p.nama:"Paket"; }
+function paymentsOf(userId){ return DB.paymentRequests.filter(r=>r.userId===userId)
+  .slice().sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))); }
+function latestPayment(u){ return u ? (paymentsOf(u.id)[0]||null) : null; }
+
+/* ---- Alur langganan: manual via WhatsApp (TANPA payment gateway) ----
+   KONFIGURASI NOMOR WHATSAPP ADMIN:
+   Nomor diambil dari DB.content.wa (dapat diubah admin di menu Konten Landing Page).
+   Developer dapat mengganti nilai default pada DEFAULT_CONTENT.wa. */
+function waDigits(){
+  const raw = String((DB.content && DB.content.wa) || "").replace(/[^0-9]/g,"");
+  if(!raw) return "";
+  if(raw.startsWith("62")) return raw;
+  if(raw.startsWith("0")) return "62"+raw.slice(1);
+  return raw;
+}
+function waLink(msg){
+  const n = waDigits();
+  return n ? "https://wa.me/"+n+"?text="+encodeURIComponent(msg) : "";
+}
+function waPesanLangganan(p){
+  return "Halo Admin SMARTA UMKM, saya ingin berlangganan paket SMARTA UMKM "+rp(p.harga).replace(/\s/g,"")+" / "+p.durasi+" "+p.satuan+". Mohon informasi mengenai proses pembayarannya.";
+}
+function subscribeStart(pkgId){
+  const p = DB.packages.find(x=>x.id===pkgId); if(!p) return;
+  const pesan = waPesanLangganan(p);
+  const link = waLink(pesan);
+  modal(`<h3>Konfirmasi Langganan</h3>
+    <div class="mt8" style="display:grid;gap:8px;font-size:14px">
+      <div class="spread"><span class="muted">Paket</span><b>${esc(p.nama)}</b></div>
+      <div class="spread"><span class="muted">Harga</span><b>${rp(p.harga)}</b></div>
+      <div class="spread"><span class="muted">Durasi</span><b>${p.durasi} ${esc(p.satuan)}</b></div>
+      <div class="spread"><span class="muted">Metode</span><b>Pembayaran via WhatsApp</b></div>
+    </div>
+    <p class="muted" style="font-size:13px;margin:12px 0 0">Pembayaran dilakukan secara manual melalui WhatsApp admin. Klik tombol di bawah untuk menghubungi admin, lalu lakukan pembayaran dan konfirmasi. Admin akan mengaktifkan langganan Anda setelah pembayaran diterima.</p>
+    ${link?"":`<p class="err-msg show" style="margin-top:10px">Nomor WhatsApp admin belum diatur. Hubungi admin melalui email ${esc(DB.content.email||"")}.</p>`}
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+    <button class="btn btn-gold" ${link?"":"disabled"} onclick="submitPayment('${p.id}')">Bayar melalui WhatsApp</button></div>`);
+}
+/* Alur pembayaran manual via WhatsApp:
+   user klik "Bayar melalui WhatsApp" -> membuka wa.me dengan pesan otomatis
+   -> pengajuan tercatat sebagai PaymentRequest (status pending)
+   -> admin approve/reject di menu Verifikasi Pembayaran (memanggil activatePaidSub). */
+function submitPayment(pkgId){
+  const u=currentUser(), p=DB.packages.find(x=>x.id===pkgId); if(!p) return false;
+  const pesan = waPesanLangganan(p);
+  const link = waLink(pesan);
+  if(!link){ toast("Nomor WhatsApp admin belum diatur.","error"); return false; }
+  DB.paymentRequests.unshift({ id:uid("pay"), userId:u.id, packageId:p.id, amount:p.harga,
+    method:"WhatsApp (Manual)", proof:null, submittedAt:new Date().toISOString(),
+    status:"pending", adminNote:"", verifiedAt:null });
+  myNotifs().unshift({id:uid("ntf"),judul:"Permintaan langganan terkirim",
+    isi:"Pengajuan "+p.nama+" sedang menunggu konfirmasi admin melalui WhatsApp.",ts:Date.now(),read:false});
+  save(); closeModal();
+  window.open(link, "_blank", "noopener");
+  toast("Anda diarahkan ke WhatsApp admin. Status: Menunggu Verifikasi."); paintNotifDot(); go("paket"); return true;
+}
+function activatePaidSub(u,req){
+  const p=DB.packages.find(x=>x.id===req.packageId);
+  const start=new Date(), end=p&&p.satuan==="bulan" ? addDays(start,p.durasi*30) : addDays(start,(p?p.durasi:180));
+  u.plan=req.packageId; u.subStatusManual="active"; u.subStart=start.toISOString(); u.subEnd=end.toISOString();
+  if(!DB.notifications[u.id]) DB.notifications[u.id]=[];
+  DB.notifications[u.id].unshift({id:uid("ntf"),judul:"Langganan aktif",
+    isi:(p?p.nama:"Langganan")+" aktif sampai "+fmtDate(end.toISOString().slice(0,10))+".",ts:Date.now(),read:false});
+}
+function approvePayment(id){
+  const req=DB.paymentRequests.find(r=>r.id===id); if(!req) return;
+  const u=DB.users.find(x=>x.id===req.userId);
+  confirmDialog("Setujui pembayaran ini?", (u?u.nama:"Pengguna")+" akan mendapatkan langganan aktif selama 6 bulan sejak hari ini.", ()=>{
+    req.status="approved"; req.verifiedAt=new Date().toISOString(); req.adminNote="";
+    if(u) activatePaidSub(u,req);
+    save(); toast("Pembayaran disetujui. Langganan aktif."); go("adminPembayaran");
+  },"Ya, Setujui",false);
+}
+function rejectPayment(id){
+  const req=DB.paymentRequests.find(r=>r.id===id); if(!req) return;
+  modal(`<h3>Tolak Pengajuan Pembayaran</h3>
+    <div class="field mt8"><label for="rj_note">Alasan Penolakan</label>
+      <textarea class="input" id="rj_note" rows="3" placeholder="Contoh: bukti pembayaran tidak jelas."></textarea>
+      <div class="err-msg" id="e_rj_note"></div></div>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+    <button class="btn btn-danger" onclick="rejectPaymentSave('${id}')">Tolak Pengajuan</button></div>`);
+}
+function rejectPaymentSave(id){
+  const note=val("rj_note");
+  if(!setErr("rj_note", !note?"Alasan penolakan wajib diisi.":"")) return false;
+  const req=DB.paymentRequests.find(r=>r.id===id); if(!req) return false;
+  req.status="rejected"; req.adminNote=note; req.verifiedAt=new Date().toISOString();
+  const u=DB.users.find(x=>x.id===req.userId);
+  if(u){ if(!DB.notifications[u.id]) DB.notifications[u.id]=[];
+    DB.notifications[u.id].unshift({id:uid("ntf"),judul:"Pengajuan pembayaran ditolak",isi:note,ts:Date.now(),read:false}); }
+  save(); closeModal(); toast("Pengajuan pembayaran ditolak.","info"); go("adminPembayaran"); return true;
+}
+function viewProof(id){
+  const req=DB.paymentRequests.find(r=>r.id===id); if(!req) return;
+  modal(`<h3>Bukti Pembayaran</h3>
+    <p class="muted" style="font-size:13.5px">${esc(pkgName(req.packageId))} • ${rp(req.amount)} • ${fmtDate(String(req.submittedAt).slice(0,10))}</p>
+    ${req.proof?`<img src="${req.proof}" alt="Bukti pembayaran" style="width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line)" />`:`<p class="muted">Tidak ada bukti terlampir.</p>`}
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Tutup</button></div>`);
+}
+function cancelSub(){
+  confirmDialog("Batalkan langganan?","Status akan kembali mengikuti masa uji coba Anda.",()=>{
+    const u=currentUser(); u.subStatusManual=null; u.subEnd=null; u.subStart=null; u.plan="pkg_trial"; save();
+    toast("Langganan dibatalkan.","info"); go("paket");
+  },"Ya, Batalkan");
+}
+
+/* ---- Setelan ---- */
+PAGES.setelan = { title:"Setelan", render(){
+  const u=currentUser(), p=myProfile(), s=mySettings(), st=subStatus(u);
+  if(isAdmin(u)){
+    return `<p class="page-sub">Akun administrator SMARTA UMKM.</p>
+    <div class="cards2"><div class="card"><h3>Data Administrator</h3><div class="mt8">
+      <div class="kv"><b>Nama</b><span class="v">${esc(u.nama)}</span></div>
+      <div class="kv"><b>Email</b><span class="v">${esc(u.email)}</span></div>
+      <div class="kv"><b>Role</b><span class="v">Administrator</span></div></div></div>
+      <div class="card"><h3>Keamanan</h3><p class="muted" style="font-size:13.5px">Ubah password akun administrator.</p>
+      <button class="btn btn-outline btn-sq mt8" onclick="pwForm()">Ubah Password</button></div></div>
+    <div class="card mt16"><div class="spread"><h3>${ic("doc","ic ic-sm")} Buku Panduan</h3>
+    <button class="btn btn-outline btn-sm" onclick="go('panduan')">Buka</button></div>
+    <p class="muted" style="font-size:13.5px;margin:6px 0 0">Buku Panduan penggunaan SMARTA UMKM dalam satu file PDF.</p></div>`;
+  }
+  return `<p class="page-sub">Kelola profil usaha dan preferensi pengaturan.</p>
+  <div class="cards3">
+    <div class="card"><div class="spread"><h3>Data Usaha</h3><button class="btn btn-outline btn-sm" onclick="bizForm()">Edit</button></div>
+      <div class="mt8">
+        <div class="kv"><div><b>Nama Usaha</b><small>Nama yang ditampilkan di laporan</small></div><span class="v">${esc(p.namaUsaha||"-")}</span></div>
+        <div class="kv"><div><b>Jenis Usaha</b><small>Dagang atau jasa</small></div><span class="v">${esc(normJenis(p.jenisUsaha)||"-")}</span></div>
+        <div class="kv"><b>Pemilik</b><span class="v">${esc(p.pemilik||"-")}</span></div>
+        <div class="kv"><b>Email</b><span class="v">${esc(p.email||"-")}</span></div>
+        <div class="kv"><b>Nomor HP</b><span class="v">${esc(p.hp||"-")}</span></div>
+        <div class="kv"><b>Alamat</b><span class="v">${esc(p.alamat||"-")}</span></div>
+        <div class="kv"><div><b>NPWP</b><small>Opsional</small></div><span class="v">${esc(p.npwp||"-")}</span></div>
+      </div></div>
+    <div class="card"><h3>${ic("bell","ic ic-sm")} Notifikasi Pengingat</h3>
+      <div class="mt8">
+        <div class="kv"><div><b>Pengingat Harian</b><small>Ingatkan saya untuk mencatat transaksi setiap hari</small></div>
+          <button class="switch ${s.reminderOn?"on":""}" onclick="toggleSetting('reminderOn')" aria-label="Pengingat harian"></button></div>
+        <div class="kv"><div><b>Waktu Pengingat</b><small>Zona waktu WIB</small></div>
+          <select class="input" style="max-width:130px" onchange="setReminderTime(this.value)">
+            ${["18:00","19:00","20:00","21:00","22:00"].map(t=>`<option ${s.reminderTime===t?"selected":""}>${t} WIB</option>`).join("")}</select></div>
+        <div class="kv"><div><b>Notifikasi Laporan Bulanan</b><small>Beri tahu saat laporan bulan lalu bisa diunduh</small></div>
+          <button class="switch ${s.monthlyReportNotif?"on":""}" onclick="toggleSetting('monthlyReportNotif')" aria-label="Notifikasi laporan bulanan"></button></div>
+      </div></div>
+    <div class="card"><h3>Akun</h3>
+      <div class="mt8">
+        <div class="kv"><b>Status Langganan</b><span class="v"><span class="pill ${st}">${statusLabel(st)}${st==="trial"?" — sisa "+trialLeft(u)+" hari":""}</span></span></div>
+        <div class="kv"><b>Paket</b><span class="v">${esc(planName(u))}</span></div>
+        <div class="kv"><b>Email Login</b><span class="v">${esc(u.email)}</span></div>
+      </div>
+      <button class="btn btn-outline btn-sq btn-block mt16" onclick="pwForm()">Ubah Password</button>
+      <button class="btn btn-outline btn-sq btn-block mt8" onclick="go('paket')">Kelola Langganan</button>
+      <button class="btn btn-danger btn-sq btn-block mt8" onclick="confirmLogout()">Keluar</button></div>
+  </div>
+  <div class="card mt16"><h3>${ic("folder","ic ic-sm")} Arsip Keuangan Bulan Sebelumnya</h3>
+    <div class="arsip-grid mt16">${(()=>{const ps=[...new Set(myTx().map(t=>ym(t.tanggal)))].sort().reverse();
+      return ps.length? ps.map(pp=>{const[y,m]=pp.split("-");return `<div class="arsip" onclick="uiState.period='${pp}';go('labarugi')">${ic("calendar")}
+        <div class="grow"><b>${MONTHS[+m-1]}</b><small>${y}</small></div></div>`;}).join("") : `<div class="empty">Belum ada arsip.</div>`;})()}</div></div>
+  <div class="card mt16"><div class="spread"><h3>${ic("doc","ic ic-sm")} Buku Panduan</h3>
+    <button class="btn btn-outline btn-sm" onclick="go('panduan')">Buka</button></div>
+    <p class="muted" style="font-size:13.5px;margin:6px 0 0">Buku Panduan penggunaan SMARTA UMKM dalam satu file PDF.</p></div>`;
+}};
+function toggleSetting(k){ const s=mySettings(); s[k]=!s[k]; save(); toast("Pengaturan diperbarui.","info"); go("setelan"); }
+function setReminderTime(v){ mySettings().reminderTime = v.replace(" WIB",""); save(); toast("Waktu pengingat diubah ke "+v+"."); }
+function bizForm(){
+  const p = myProfile();
+  modal(`<h3>Edit Data Usaha</h3>
+  <div class="mt16">
+    <div class="field"><label for="bz_nama">Nama Usaha <span class="req">*</span></label><input class="input" id="bz_nama" value="${esc(p.namaUsaha||"")}"><div class="err-msg" id="e_bz_nama"></div></div>
+    <div class="field field-jenis" id="fj_bz"><label for="bz_jenis">Jenis Usaha <span class="req">*</span></label>
+      <button type="button" class="info-btn" aria-label="Penjelasan jenis usaha" onclick="toggleJenisInfo(event,'fj_bz')">!</button>
+      <div class="info-pop"><p><b>Dagang</b>Usaha dagang adalah usaha yang membeli dan menjual kembali barang untuk memperoleh keuntungan. Contohnya toko sembako, toko pakaian, toko elektronik, dan usaha perdagangan lainnya.</p><p><b>Jasa</b>Usaha jasa adalah usaha yang memberikan layanan atau keahlian kepada pelanggan sebagai sumber pendapatan. Contohnya salon, laundry, jasa desain, jasa fotografi, dan usaha jasa lainnya.</p></div>
+      <select class="input" id="bz_jenis">
+      ${["Dagang","Jasa"].map(j=>`<option ${normJenis(p.jenisUsaha)===j?"selected":""}>${j}</option>`).join("")}</select>
+      <div class="err-msg" id="e_bz_jenis"></div></div>
+    <div class="grid2">
+      <div class="field"><label for="bz_pemilik">Nama Pemilik <span class="req">*</span></label><input class="input" id="bz_pemilik" value="${esc(p.pemilik||"")}"><div class="err-msg" id="e_bz_pemilik"></div></div>
+      <div class="field"><label for="bz_email">Email <span class="req">*</span></label><input class="input" id="bz_email" value="${esc(p.email||"")}"><div class="err-msg" id="e_bz_email"></div></div>
+    </div>
+    <div class="field"><label for="bz_hp">Nomor HP <span class="req">*</span></label><input class="input" id="bz_hp" value="${esc(p.hp||"")}" placeholder="0812-3456-7890"><div class="err-msg" id="e_bz_hp"></div></div>
+    <div class="field"><label for="bz_alamat">Alamat <span class="req">*</span></label><textarea class="input" id="bz_alamat">${esc(p.alamat||"")}</textarea><div class="err-msg" id="e_bz_alamat"></div></div>
+    <div class="field"><label for="bz_npwp">NPWP <span class="hint">(Opsional)</span></label><input class="input" id="bz_npwp" value="${esc(p.npwp||"")}" placeholder="Contoh: 12.345.678.9-012.000"><div class="err-msg" id="e_bz_npwp"></div></div>
+    <p class="req-note"><span class="req">*</span> Wajib diisi</p>
+  </div>
+  <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+    <button class="btn btn-green" onclick="bizSave()">Simpan Perubahan</button></div>`);
+}
+function bizSave(){
+  const nama=val("bz_nama"), email=val("bz_email"), pemilik=val("bz_pemilik"), hp=val("bz_hp"), alamat=val("bz_alamat"), npwp=val("bz_npwp");
+  let ok = setErr("bz_nama", !nama?"Nama usaha wajib diisi.":(nama.length<3?"Minimal 3 karakter.":""));
+  ok = setErr("bz_pemilik", !pemilik?"Nama pemilik wajib diisi.":"") && ok;
+  ok = setErr("bz_email", !email?"Email wajib diisi.":(!isEmail(email)?"Format email tidak valid.":"")) && ok;
+  ok = setErr("bz_hp", !hp?"Nomor HP wajib diisi.":(!/^[0-9+\-\s()]{8,20}$/.test(hp) ? "Nomor HP tidak valid." : "")) && ok;
+  ok = setErr("bz_jenis", !val("bz_jenis")?"Jenis usaha wajib dipilih.":"") && ok;
+  ok = setErr("bz_alamat", !alamat?"Alamat wajib diisi.":(alamat.length>160?"Alamat maksimal 160 karakter.":"")) && ok;
+  ok = setErr("bz_npwp", npwp && !/^[0-9.\-\s]{15,25}$/.test(npwp) ? "Format NPWP tidak valid." : "") && ok; // NPWP opsional
+  if(!ok) return false;
+  const u=currentUser();
+  DB.businessProfiles[u.id] = {namaUsaha:nama, jenisUsaha:normJenis(val("bz_jenis")), pemilik, email, hp, alamat, npwp};
+  u.namaUsaha = nama; u.jenisUsaha = normJenis(val("bz_jenis")); save();
+  closeModal(); toast("Profil usaha berhasil diperbarui."); go("setelan"); return true;
+}
+function pwForm(){
+  modal(`<h3>Ubah Password</h3>
+    <div class="mt16">
+      <div class="field"><label for="pw_old">Password Lama</label><div class="pw-wrap"><input class="input" type="password" id="pw_old"><button type="button" class="pw-eye" aria-label="Tampilkan password" aria-pressed="false" onclick="togglePw(this)"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg></button></div><div class="err-msg" id="e_pw_old"></div></div>
+      <div class="field"><label for="pw_new">Password Baru</label><div class="pw-wrap"><input class="input" type="password" id="pw_new"><button type="button" class="pw-eye" aria-label="Tampilkan password" aria-pressed="false" onclick="togglePw(this)"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg></button></div><div class="err-msg" id="e_pw_new"></div></div>
+      <div class="field"><label for="pw_new2">Konfirmasi Password Baru</label><div class="pw-wrap"><input class="input" type="password" id="pw_new2"><button type="button" class="pw-eye" aria-label="Tampilkan password" aria-pressed="false" onclick="togglePw(this)"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg></button></div><div class="err-msg" id="e_pw_new2"></div></div>
+    </div>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+      <button class="btn btn-green" onclick="pwSave()">Simpan</button></div>`);
+}
+function pwSave(){
+  const u=currentUser(), o=val("pw_old"), n=val("pw_new"), n2=val("pw_new2");
+  let ok = setErr("pw_old", !o?"Password lama wajib diisi.":(o!==u.password?"Password lama salah.":""));
+  ok = setErr("pw_new", !n?"Password baru wajib diisi.":(n.length<6?"Minimal 6 karakter.":"")) && ok;
+  ok = setErr("pw_new2", n!==n2?"Konfirmasi tidak sama.":"") && ok;
+  if(!ok) return false;
+  u.password=n; save(); closeModal(); toast("Password berhasil diubah."); return true;
+}
+
+/* ---- Bantuan (in-app) ---- */
+PAGES.bantuanApp = { title:"Bantuan", render(){
+  // Sumber data FAQ tunggal: DB.content.faq (dikelola Admin > Manajemen Konten).
+  const faq = (DB.content.faq && DB.content.faq.length) ? DB.content.faq : DEFAULT_FAQ;
+  return `<p class="page-sub">Panduan penggunaan SMARTA UMKM. Klik pertanyaan untuk melihat jawaban.</p>
+  <div class="card"><div class="faq" style="margin:0">${faq.map((f,i)=>`<div class="acc" id="accApp${i}">
+    <button onclick="document.getElementById('accApp${i}').classList.toggle('open')">${esc(f.q)}
+      <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="bd">${esc(f.a)}</div></div>`).join("")}</div></div>
+  <div class="card mt16"><h3>Masih butuh bantuan?</h3>
+    <p class="muted" style="font-size:13.5px">Hubungi helpdesk SMARTA UMKM melalui email <b>${esc(DB.content.email||"smartaumkm@gmail.com")}</b> atau gunakan chat bot 24 jam di kanan bawah halaman beranda.</p></div>`;
+}};
+
+/* ================= ADMIN ================= */
+function allUsers(){ return DB.users.filter(u=>u.role!=="admin"); }
+function userStats(u){
+  const tx = DB.transactions.filter(t=>t.userId===u.id);
+  const t = totals(tx);
+  return {count:tx.length, masuk:t.masuk, keluar:t.keluar, laba:t.masuk-t.keluar};
+}
+
+/* ---- Buku Panduan (satu file PDF) ---- */
+/* GANTI/UNGGAH FILE PDF: letakkan file PDF lalu ubah PANDUAN_PDF_URL di bawah ini. */
+const PANDUAN_PDF_URL = ""; // contoh: "/buku-panduan-smarta-umkm.pdf"
+PAGES.panduan = { title:"Buku Panduan", render(){
+  return `<p class="page-sub">Buku Panduan penggunaan SMARTA UMKM.</p>
+  <div class="card"><div class="spread"><h3>${ic("doc","ic ic-sm")} Buku Panduan</h3></div>
+    <p class="muted" style="font-size:13.5px;margin:6px 0 0">Buku Panduan penggunaan SMARTA UMKM tersedia dalam satu file PDF.</p>
+    <div class="mt16 row" style="gap:10px;flex-wrap:wrap">
+      ${PANDUAN_PDF_URL
+        ? `<a class="btn btn-green btn-sq" href="${PANDUAN_PDF_URL}" target="_blank" rel="noopener">Lihat / Buka Buku Panduan</a>`
+        : `<button class="btn btn-green btn-sq" disabled>Lihat / Buka Buku Panduan</button>`}
+      <button class="btn btn-outline btn-sq" onclick="go('setelan')">Kembali ke Setelan</button>
+    </div>
+    ${PANDUAN_PDF_URL ? `<div class="mt16" style="border:1px solid var(--line);border-radius:var(--r);overflow:hidden">
+      <iframe src="${PANDUAN_PDF_URL}" title="Buku Panduan SMARTA UMKM" style="width:100%;height:70vh;border:0"></iframe></div>` : ""}
+  </div>`;
+}};
+
+PAGES.admin = { title:"Dashboard Admin", render(){
+  const us = allUsers();
+  const trial = us.filter(u=>subStatus(u)==="trial").length;
+  const active = us.filter(u=>subStatus(u)==="active").length;
+  const expired = us.filter(u=>subStatus(u)==="expired").length;
+  const revenue = us.filter(u=>subStatus(u)==="active").reduce((a,u)=>{const p=DB.packages.find(x=>x.id===u.plan);return a+(p?p.harga:0);},0);
+  const recent = us.slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,6);
+  return `<p class="page-sub">Ringkasan pengguna, langganan, dan aktivitas SMARTA UMKM.</p>
+  <div class="cards4">
+    <div class="stat"><div class="lb">${ic("users","ic ic-sm")}Total Pengguna</div><div class="vl">${us.length}</div><div class="sub">${DB.transactions.length} transaksi tercatat</div></div>
+    <div class="stat"><div class="lb">${ic("card","ic ic-sm")}Langganan Aktif</div><div class="vl pos">${active}</div><div class="sub">${trial} sedang uji coba</div></div>
+    <div class="stat"><div class="lb">${ic("bell","ic ic-sm")}Expired</div><div class="vl neg">${expired}</div><div class="sub">Perlu ditindaklanjuti</div></div>
+    <div class="stat"><div class="lb">${ic("chart","ic ic-sm")}Estimasi Pendapatan</div><div class="vl">${rp(revenue)}</div><div class="sub">Dari langganan aktif</div></div>
+  </div>
+  <div class="split mt16">
+    <div class="card"><div class="spread"><h3>Pengguna Terbaru</h3><button class="btn btn-outline btn-sm" onclick="go('adminUsers')">Kelola Semua</button></div>
+      <div class="mt8">${recent.length? recent.map(u=>{const s=userStats(u),st=subStatus(u);
+        return `<div class="tx"><div class="ti in">${ic("person","ic ic-sm")}</div>
+          <div class="grow"><b>${esc(u.nama)}</b><small>${esc(u.namaUsaha||"-")} • ${s.count} transaksi</small></div>
+          <span class="pill ${st}">${statusLabel(st)}</span></div>`;}).join("") : emptyState("Belum ada pengguna terdaftar.")}</div></div>
+    <div class="card"><h3>Distribusi Status</h3>
+      <div class="mt16">${[["Uji Coba",trial,"trial"],["Aktif",active,"active"],["Expired",expired,"expired"]].map(([l,v,c])=>{
+        const pct = us.length? Math.round(v/us.length*100):0;
+        return `<div style="margin-bottom:14px"><div class="spread" style="font-size:13px"><b>${l}</b><span class="muted">${v} pengguna (${pct}%)</span></div>
+          <div class="prog mt8"><span class="${c}" style="width:${pct}%"></span></div></div>`;}).join("")}</div>
+      <div class="kv"><b>Paket Tersedia</b><span class="v">${DB.packages.filter(p=>p.aktif).length} aktif</span></div>
+      <div class="kv"><b>Laporan Diarsipkan</b><span class="v">${DB.reports.length}</span></div></div>
+  </div>`;
+}};
+PAGES.adminUsers = { title:"Manajemen User", render(){
+  const q = (uiState.adminQ||"").toLowerCase();
+  let us = allUsers();
+  if(q) us = us.filter(u=>u.nama.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)||String(u.namaUsaha||"").toLowerCase().includes(q));
+  if(uiState.adminStatus) us = us.filter(u=>subStatus(u)===uiState.adminStatus);
+  return `<p class="page-sub">Kelola akun pengguna, status langganan, dan akses aplikasi.</p>
+  <div class="card">
+    <div class="filters">
+      <input class="input" placeholder="Cari nama, email, atau usaha..." value="${esc(uiState.adminQ||"")}" oninput="uiState.adminQ=this.value;go('adminUsers')">
+      <select class="input" onchange="uiState.adminStatus=this.value;go('adminUsers')"><option value="">Semua Status</option>
+        ${["trial","active","expired"].map(s=>`<option value="${s}" ${uiState.adminStatus===s?"selected":""}>${statusLabel(s)}</option>`).join("")}</select>
+    </div>
+    <div class="tbl-wrap mt16"><table><thead><tr><th>Pengguna</th><th>Usaha</th><th>Status</th><th>Paket</th>
+      <th style="text-align:right">Transaksi</th><th>Terdaftar</th><th>Aksi</th></tr></thead><tbody>
+      ${us.length? us.map(u=>{const s=userStats(u),st=subStatus(u);
+        return `<tr><td><b>${esc(u.nama)}</b><br><small class="muted">${esc(u.email)}</small></td>
+          <td>${esc(u.namaUsaha||"-")}<br><small class="muted">${esc(normJenis(u.jenisUsaha)||"")}</small></td>
+          <td><span class="pill ${st}">${statusLabel(st)}</span></td><td>${esc(planName(u))}</td>
+          <td style="text-align:right">${s.count}</td><td>${fmtDate(String(u.createdAt||"").slice(0,10))}</td>
+          <td><div class="row" style="gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="adminUserDetail('${u.id}')">Detail</button>
+            <button class="btn btn-outline btn-sm" onclick="adminSetStatus('${u.id}')">Ubah Status</button>
+            <button class="icon-btn" title="Hapus pengguna" onclick="adminDelUser('${u.id}')">${ic("trash","ic ic-sm")}</button></div></td></tr>`;}).join("")
+        : `<tr><td colspan="7">${emptyState("Tidak ada pengguna yang cocok.")}</td></tr>`}
+    </tbody></table></div></div>`;
+}};
+function adminUserDetail(id){
+  const u=DB.users.find(x=>x.id===id), s=userStats(u), st=subStatus(u), p=DB.businessProfiles[u.id]||{};
+  modal(`<h3>${esc(u.nama)}</h3><p class="muted" style="font-size:13px;margin:4px 0 0">${esc(u.email)}</p>
+    <div class="mt16">
+      <div class="kv"><b>Status</b><span class="v"><span class="pill ${st}">${statusLabel(st)}</span></span></div>
+      <div class="kv"><b>Paket</b><span class="v">${esc(planName(u))}</span></div>
+      <div class="kv"><b>Uji Coba Berakhir</b><span class="v">${fmtDate(u.trialEnd.slice(0,10))}</span></div>
+      <div class="kv"><b>Nama Usaha</b><span class="v">${esc(p.namaUsaha||u.namaUsaha||"-")}</span></div>
+      <div class="kv"><b>Jenis Usaha</b><span class="v">${esc(normJenis(p.jenisUsaha)||"-")}</span></div>
+      <div class="kv"><b>Nomor HP</b><span class="v">${esc(p.hp||"-")}</span></div>
+      <div class="kv"><b>Total Transaksi</b><span class="v">${s.count}</span></div>
+      <div class="kv"><b>Pemasukan</b><span class="v tone-green">${rp(s.masuk)}</span></div>
+      <div class="kv"><b>Pengeluaran</b><span class="v tone-red">${rp(s.keluar)}</span></div>
+      <div class="kv"><b>Laba / Rugi</b><span class="v ${s.laba>=0?"tone-green":"tone-red"}">${(s.laba<0?"− ":"")+rp(s.laba)}</span></div>
+    </div>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Tutup</button></div>`);
+}
+function adminSetStatus(id){
+  const u=DB.users.find(x=>x.id===id);
+  modal(`<h3>Ubah Status Langganan</h3><p class="muted" style="font-size:13px;margin:4px 0 0">${esc(u.nama)} — ${esc(u.email)}</p>
+    <div class="field mt16"><label for="as_status">Status</label><select class="input" id="as_status">
+      ${["trial","active","expired"].map(s=>`<option value="${s}" ${subStatus(u)===s?"selected":""}>${statusLabel(s)}</option>`).join("")}</select></div>
+    <div class="field"><label for="as_pkg">Paket</label><select class="input" id="as_pkg">
+      ${DB.packages.map(p=>`<option value="${p.id}" ${u.plan===p.id?"selected":""}>${esc(p.nama)}</option>`).join("")}</select></div>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+      <button class="btn btn-green" onclick="adminSaveStatus('${id}')">Simpan</button></div>`);
+}
+function adminSaveStatus(id){
+  const u=DB.users.find(x=>x.id===id), st=val("as_status"), pkg=val("as_pkg");
+  u.plan=pkg;
+  if(st==="active"){ u.subStatusManual="active"; u.subEnd=addDays(new Date(),180).toISOString(); }
+  else if(st==="expired"){ u.subStatusManual="expired"; u.subEnd=null; }
+  else { u.subStatusManual=null; u.subEnd=null; u.trialEnd=addDays(new Date(),TRIAL_DAYS).toISOString(); }
+  save(); closeModal(); toast("Status "+u.nama+" diubah menjadi "+statusLabel(st)+"."); go("adminUsers"); return true;
+}
+function adminDelUser(id){
+  const u=DB.users.find(x=>x.id===id);
+  confirmDialog("Hapus pengguna?", "Akun "+u.nama+" beserta seluruh transaksinya akan dihapus permanen.", ()=>{
+    DB.users = DB.users.filter(x=>x.id!==id);
+    DB.transactions = DB.transactions.filter(t=>t.userId!==id);
+    DB.reports = DB.reports.filter(r=>r.userId!==id);
+    delete DB.categories[id]; delete DB.settings[id]; delete DB.notifications[id]; delete DB.businessProfiles[id];
+    save(); toast("Pengguna berhasil dihapus."); go("adminUsers");
+  },"Ya, Hapus");
+}
+PAGES.adminPaket = { title:"Manajemen Paket", render(){
+  return `<p class="page-sub">Atur nama paket, harga, durasi, batas transaksi, dan fitur.</p>
+  <div class="card"><div class="spread"><h3>Daftar Paket</h3><button class="btn btn-outline btn-sm" onclick="pkgForm()">+ Tambah Paket</button></div>
+    <div class="tbl-wrap mt16"><table><thead><tr><th>Nama Paket</th><th style="text-align:right">Harga</th><th>Durasi</th>
+      <th>Batas Transaksi</th><th>Pengguna</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
+      ${DB.packages.map(p=>`<tr><td><b>${esc(p.nama)}</b><br><small class="muted">${p.fitur.length} fitur</small></td>
+        <td style="text-align:right">${p.harga>0?rp(p.harga):"Gratis"}</td><td>${p.durasi} ${p.satuan}</td>
+        <td>${p.batas>0?p.batas+" transaksi":"Tidak terbatas"}</td>
+        <td>${allUsers().filter(u=>u.plan===p.id).length}</td>
+        <td><span class="pill ${p.aktif?"active":"expired"}">${p.aktif?"Aktif":"Nonaktif"}</span></td>
+        <td><div class="row" style="gap:6px"><button class="btn btn-outline btn-sm" onclick="pkgForm('${p.id}')">Edit</button>
+          <button class="btn btn-outline btn-sm" onclick="pkgToggle('${p.id}')">${p.aktif?"Nonaktifkan":"Aktifkan"}</button></div></td></tr>`).join("")}
+    </tbody></table></div></div>`;
+}};
+function pkgForm(id){
+  const p = id ? DB.packages.find(x=>x.id===id) : {nama:"",harga:0,durasi:6,satuan:"bulan",batas:0,fitur:[]};
+  modal(`<h3>${id?"Edit":"Tambah"} Paket</h3>
+    <div class="mt16">
+      <div class="field"><label for="pk_nama">Nama Paket</label><input class="input" id="pk_nama" value="${esc(p.nama)}"><div class="err-msg" id="e_pk_nama"></div></div>
+      <div class="grid2">
+        <div class="field"><label for="pk_harga">Harga (Rp)</label><input class="input" id="pk_harga" type="number" min="0" value="${p.harga}"><div class="err-msg" id="e_pk_harga"></div></div>
+        <div class="field"><label for="pk_durasi">Durasi</label><input class="input" id="pk_durasi" type="number" min="1" value="${p.durasi}"><div class="err-msg" id="e_pk_durasi"></div></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="pk_satuan">Satuan Durasi</label><select class="input" id="pk_satuan">
+          <option value="bulan" ${p.satuan==="bulan"?"selected":""}>Bulan</option><option value="hari" ${p.satuan==="hari"?"selected":""}>Hari</option></select></div>
+        <div class="field"><label for="pk_batas">Batas Transaksi (0 = tidak terbatas)</label><input class="input" id="pk_batas" type="number" min="0" value="${p.batas}"><div class="err-msg" id="e_pk_batas"></div></div>
+      </div>
+      <div class="field"><label for="pk_fitur">Fitur (satu per baris)</label><textarea class="input" id="pk_fitur" rows="4">${esc(p.fitur.join("\n"))}</textarea><div class="err-msg" id="e_pk_fitur"></div></div>
+    </div>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+      <button class="btn btn-green" onclick="pkgSave('${id||""}')">Simpan</button></div>`);
+}
+function pkgSave(id){
+  const nama=val("pk_nama"), harga=Number(val("pk_harga")), durasi=Number(val("pk_durasi")), batas=Number(val("pk_batas"));
+  const fitur = val("pk_fitur").split("\n").map(s=>s.trim()).filter(Boolean);
+  let ok = setErr("pk_nama", !nama?"Nama paket wajib diisi.":"");
+  ok = setErr("pk_harga", isNaN(harga)||harga<0?"Harga tidak valid.":"") && ok;
+  ok = setErr("pk_durasi", !durasi||durasi<1?"Durasi minimal 1.":"") && ok;
+  ok = setErr("pk_batas", isNaN(batas)||batas<0?"Batas tidak valid.":"") && ok;
+  ok = setErr("pk_fitur", fitur.length<1?"Minimal satu fitur.":"") && ok;
+  if(!ok) return false;
+  if(id){ Object.assign(DB.packages.find(x=>x.id===id), {nama,harga,durasi,satuan:val("pk_satuan"),batas,fitur}); toast("Paket berhasil diperbarui."); }
+  else { DB.packages.push({id:uid("pkg"),nama,harga,durasi,satuan:val("pk_satuan"),batas,fitur,aktif:true}); toast("Paket berhasil ditambahkan."); }
+  save(); closeModal(); go("adminPaket"); return true;
+}
+function pkgToggle(id){ const p=DB.packages.find(x=>x.id===id); p.aktif=!p.aktif; save(); toast("Paket "+p.nama+" "+(p.aktif?"diaktifkan":"dinonaktifkan")+"."); go("adminPaket"); }
+PAGES.adminPembayaran = { title:"Permintaan Pembayaran", render(){
+  const reqs = DB.paymentRequests.slice().sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt)));
+  const pill = st => st==="pending"?'<span class="pill trial">Menunggu Verifikasi</span>'
+    : st==="approved"?'<span class="pill active">Disetujui</span>':'<span class="pill expired">Ditolak</span>';
+  return `<p class="page-sub">Verifikasi pengajuan pembayaran manual/demo dari pengguna.</p>
+  <div class="cards3">
+    <div class="stat"><div class="lb">${ic("inbox","ic ic-sm")}Menunggu Verifikasi</div><div class="vl">${reqs.filter(r=>r.status==="pending").length}</div></div>
+    <div class="stat"><div class="lb">${ic("check","ic ic-sm")}Disetujui</div><div class="vl pos">${reqs.filter(r=>r.status==="approved").length}</div></div>
+    <div class="stat"><div class="lb">${ic("bell","ic ic-sm")}Ditolak</div><div class="vl neg">${reqs.filter(r=>r.status==="rejected").length}</div></div>
+  </div>
+  <div class="card mt16">
+    ${reqs.length? reqs.map(r=>{ const u=DB.users.find(x=>x.id===r.userId)||{nama:"(dihapus)",email:"-"};
+      return `<div class="tx"><div class="ti in">${ic("card","ic ic-sm")}</div>
+        <div class="grow"><b>${esc(u.nama)}</b> ${pill(r.status)}
+          <small>${esc(u.email)} • ${esc(pkgName(r.packageId))} • ${rp(r.amount)} • ${esc(r.method)} • Diajukan ${fmtDate(String(r.submittedAt).slice(0,10))}</small>
+          ${r.status==="rejected"&&r.adminNote?`<small>Alasan: ${esc(r.adminNote)}</small>`:""}</div>
+        <div class="row" style="gap:6px">
+          <button class="icon-btn" title="Lihat Bukti" onclick="viewProof('${r.id}')">${ic("eye","ic ic-sm")}</button>
+          ${r.status==="pending"?`<button class="btn btn-green btn-sm" onclick="approvePayment('${r.id}')">Setujui</button>
+          <button class="btn btn-danger btn-sm" onclick="rejectPayment('${r.id}')">Tolak</button>`:""}
+        </div></div>`; }).join("")
+      : `<p class="muted" style="font-size:14px;margin:0">Belum ada permintaan pembayaran.</p>`}
+  </div>`;
+}};
+
+PAGES.adminKonten = { title:"Manajemen Konten", render(){
+  const c = DB.content;
+  return `<p class="page-sub">Kelola teks landing page, kontak, dan daftar FAQ.</p>
+  <div class="split">
+    <div class="card"><h3>Konten Landing Page</h3>
+      <div class="mt16">
+        <div class="field"><label for="ct_tagline">Tagline Hero</label><input class="input" id="ct_tagline" value="${esc(c.tagline)}"><div class="err-msg" id="e_ct_tagline"></div></div>
+        <div class="field"><label for="ct_sub">Subjudul Hero</label><textarea class="input" id="ct_sub" rows="3">${esc(c.sub)}</textarea><div class="err-msg" id="e_ct_sub"></div></div>
+        <div class="field"><label for="ct_tentang">Tentang Kami</label><textarea class="input" id="ct_tentang" rows="4">${esc(c.tentang)}</textarea><div class="err-msg" id="e_ct_tentang"></div></div>
+        <div class="grid2">
+          <div class="field"><label for="ct_email">Email Kontak</label><input class="input" id="ct_email" value="${esc(c.email)}"><div class="err-msg" id="e_ct_email"></div></div>
+          <div class="field"><label for="ct_wa">Nomor WhatsApp</label><input class="input" id="ct_wa" value="${esc(c.wa)}"><div class="err-msg" id="e_ct_wa"></div></div>
+        </div>
+      </div>
+      <button class="btn btn-green btn-sq" onclick="contentSave()">Simpan Konten</button>
+      <button class="btn btn-outline btn-sq" onclick="contentReset()">Kembalikan Default</button></div>
+    <div class="card"><div class="spread"><h3>Daftar FAQ</h3><button class="btn btn-outline btn-sm" onclick="faqForm()">+ Tambah</button></div>
+      <div class="mt8">${c.faq.map((f,i)=>`<div class="tx"><div class="ti in">${ic("doc","ic ic-sm")}</div>
+        <div class="grow"><b>${esc(f.q)}</b><small>${esc(f.a).slice(0,90)}${f.a.length>90?"…":""}</small></div>
+        <div class="row" style="gap:6px"><button class="icon-btn" title="Edit" onclick="faqForm(${i})">${ic("edit","ic ic-sm")}</button>
+        <button class="icon-btn" title="Hapus" onclick="faqDelete(${i})">${ic("trash","ic ic-sm")}</button></div></div>`).join("")}</div></div>
+  </div>`;
+}};
+function contentSave(){
+  const tagline=val("ct_tagline"), sub=val("ct_sub"), tentang=val("ct_tentang"), email=val("ct_email"), wa=val("ct_wa");
+  let ok = setErr("ct_tagline", !tagline?"Tagline wajib diisi.":"");
+  ok = setErr("ct_sub", !sub?"Subjudul wajib diisi.":"") && ok;
+  ok = setErr("ct_tentang", !tentang?"Teks tentang kami wajib diisi.":"") && ok;
+  ok = setErr("ct_email", !isEmail(email)?"Format email tidak valid.":"") && ok;
+  ok = setErr("ct_wa", !/^[0-9+\-\s()]{8,20}$/.test(wa)?"Nomor WhatsApp tidak valid.":"") && ok;
+  if(!ok) return false;
+  Object.assign(DB.content,{tagline,sub,tentang,email,wa}); save(); toast("Konten landing page berhasil disimpan."); return true;
+}
+function contentReset(){ confirmDialog("Kembalikan konten default?","Seluruh teks landing page dan FAQ dikembalikan ke pengaturan awal.",()=>{
+  DB.content = JSON.parse(JSON.stringify(DEFAULT_CONTENT)); save(); toast("Konten dikembalikan ke default.","info"); go("adminKonten"); },"Ya, Kembalikan"); }
+function faqForm(i){
+  const f = (i===undefined) ? {q:"",a:""} : DB.content.faq[i];
+  modal(`<h3>${i===undefined?"Tambah":"Edit"} FAQ</h3>
+    <div class="mt16">
+      <div class="field"><label for="fq_q">Pertanyaan</label><input class="input" id="fq_q" value="${esc(f.q)}"><div class="err-msg" id="e_fq_q"></div></div>
+      <div class="field"><label for="fq_a">Jawaban</label><textarea class="input" id="fq_a" rows="4">${esc(f.a)}</textarea><div class="err-msg" id="e_fq_a"></div></div>
+    </div>
+    <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
+      <button class="btn btn-green" onclick="faqSave(${i===undefined?"-1":i})">Simpan</button></div>`);
+}
+function faqSave(i){
+  const q=val("fq_q"), a=val("fq_a");
+  let ok = setErr("fq_q", !q?"Pertanyaan wajib diisi.":"");
+  ok = setErr("fq_a", !a?"Jawaban wajib diisi.":"") && ok;
+  if(!ok) return false;
+  if(i<0) DB.content.faq.push({q,a}); else DB.content.faq[i]={q,a};
+  save(); closeModal(); toast("FAQ berhasil disimpan."); go("adminKonten"); return true;
+}
+function faqDelete(i){ confirmDialog("Hapus FAQ ini?", DB.content.faq[i].q, ()=>{
+  DB.content.faq.splice(i,1); save(); toast("FAQ dihapus."); go("adminKonten"); },"Ya, Hapus"); }
+
+/* ================= CHAT BOT (satu instance untuk seluruh website) ================= */
+function toggleChat(){ document.getElementById("chatPanel").classList.toggle("hidden"); }
+function botSay(t){ const l=document.getElementById("chatLog");
+  l.insertAdjacentHTML("beforeend",`<div class="chat-msg bot">${esc(t)}</div>`); l.scrollTop=l.scrollHeight; }
+function chatSend(e){
+  if(e) e.preventDefault();
+  const i=document.getElementById("chatIn"), q=i.value.trim(); if(!q) return false;
+  const l=document.getElementById("chatLog");
+  l.insertAdjacentHTML("beforeend",`<div class="chat-msg me">${esc(q)}</div>`); i.value=""; l.scrollTop=l.scrollHeight;
+  setTimeout(()=>botSay(botReply(q)),400); return false;
+}
+function botReply(q){
+  const s=q.toLowerCase();
+  if(/gateway|midtrans|xendit|tripay/.test(s)) return "SMARTA UMKM tidak memakai payment gateway. Pembayaran dilakukan manual melalui WhatsApp admin.";
+  if(/bayar|pembayaran|verifikasi|bukti|whatsapp/.test(s)) return "Buka Paket Langganan, klik Berlangganan lalu Bayar melalui WhatsApp. Anda akan diarahkan ke WhatsApp admin untuk menyelesaikan pembayaran; status menjadi Menunggu Verifikasi sampai admin mengaktifkan langganan.";
+  if(/harga|biaya|langganan|paket/.test(s)) return "Paket Langganan SMARTA UMKM Rp 24.000 untuk 6 bulan (sekitar Rp 4.000/bulan), setelah Uji Coba Gratis 30 Hari.";
+  if(/trial|coba|gratis/.test(s)) return "Uji Coba Gratis berlaku 30 hari dengan semua fitur terbuka. Sisa hari uji coba tampil di dashboard.";
+  if(/daftar|registrasi|akun/.test(s)) return "Klik Daftar Gratis, isi nama, email, password, nama usaha, dan jenis usaha. Uji Coba Gratis 30 Hari langsung aktif.";
+  if(/pemasukan/.test(s)) return "Pemasukan dicatat lewat Tambah Transaksi: pilih Pemasukan, isi tanggal, nominal, kategori (misal Penjualan Barang), dan akun keuangan.";
+  if(/pengeluaran/.test(s)) return "Pengeluaran dicatat lewat Tambah Transaksi: pilih Pengeluaran, isi tanggal, nominal, kategori (misal Pembelian Barang), dan akun keuangan.";
+  if(/catat|transaksi|input/.test(s)) return "Buka menu Tambah Transaksi, pilih pemasukan atau pengeluaran, isi tanggal, nominal, kategori, akun keuangan, lalu Simpan Transaksi.";
+  if(/laba|rugi|laporan/.test(s)) return "Laporan Laba Rugi dihitung otomatis dari transaksi keuangan usaha, lengkap dengan interpretasi kondisi keuangan dan tombol Download PDF.";
+  if(/pribadi|usaha|pisah/.test(s)) return "Setiap transaksi punya pilihan Keuangan Usaha atau Keuangan Pribadi. Transaksi pribadi tidak masuk laporan laba rugi usaha.";
+  if(/foto|kamera|struk|nota/.test(s)) return "Pada form Tambah Transaksi Anda bisa Upload Bukti Transaksi atau Ambil Foto dari Kamera perangkat.";
+  if(/lupa|password/.test(s)) return "Gunakan menu Setelan > Ubah Password saat sudah masuk. Jika lupa, hubungi "+(DB.content.email||"smartaumkm@gmail.com")+".";
+  if(/pakai|cara|mulai|panduan|smarta/.test(s)) return "Alurnya: daftar akun, lengkapi profil usaha, catat transaksi harian, lalu baca Laporan Laba Rugi. Semua menu ada di sidebar setelah login.";
+  if(/hubungi|kontak|admin|bantuan/.test(s)) return "Hubungi kami di "+(DB.content.email||"smartaumkm@gmail.com")+" atau WhatsApp "+(DB.content.wa||"-")+".";
+  return "Maaf, saya belum paham pertanyaan itu. Coba tanyakan cara mencatat transaksi, pemasukan, pengeluaran, laporan laba rugi, uji coba 30 hari, paket langganan, atau pembayaran.";
+}
+
+/* ================= BOOT ================= */
+function boot(){
+  load(); seedIfEmpty();
+  DB.content = Object.assign({}, DEFAULT_CONTENT, DB.content||{});
+  save();
+  renderLanding();
+  if(currentUser()){ enterApp(); } else { showLanding(); }
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ closeModal(); closeSidebar(); } });
+  // debug/test surface: gabungkan, jangan menimpa export sebelumnya
+  window.SMARTA = Object.assign(window.SMARTA || {}, { DB, profitLoss, interpret, totals, monthlySeries,
+    subStatus, subscriptionState, trialLeft, rp, save, go, toTransactionDTO, fromTransactionDTO, DataStore });
+}
+
+/* ---- Landing dynamic content + chat widget + progress bar styles ---- */
+function renderLanding(){
+  const c = DB.content;
+  const setTxt = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  setTxt("lpTagline", c.tagline); setTxt("lpSub", c.sub); setTxt("lpTentang", c.tentang);
+  setTxt("lpEmail", c.email); setTxt("lpWa", c.wa);
+  const faqBox = document.getElementById("faqList");
+  if(faqBox) faqBox.innerHTML = LANDING_FAQ.map((f,i)=>`<div class="acc" id="acc${i}">
+    <button onclick="document.getElementById('acc${i}').classList.toggle('open')">${esc(f.q)}
+      <svg class="ic ic-sm" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="bd">${esc(f.a)}</div></div>`).join("");
+  const pkgBox = document.getElementById("lpPaket");
+  if(pkgBox) pkgBox.innerHTML = DB.packages.filter(p=>p.aktif).map(p=>`<div class="card price">
+    <div class="spread"><h3>${esc(p.nama)}</h3>${p.harga>0?`<span class="pill trial">Rekomendasi</span>`:""}</div>
+    <div style="font-family:var(--serif);font-size:30px;font-weight:700;margin-top:8px">${p.harga>0?rp(p.harga):"Gratis"}</div>
+    <small class="muted">per ${p.durasi} ${p.satuan}</small>
+    <ul style="list-style:none;padding:0;margin:16px 0;display:grid;gap:9px">
+      ${p.fitur.map(f=>`<li class="row" style="font-size:13.5px">${ic("check","ic ic-sm")}<span>${esc(f)}</span></li>`).join("")}</ul>
+    <button class="btn ${p.harga>0?"btn-gold":"btn-outline"} btn-sq btn-block" onclick="openAuth('register')">${p.harga>0?"Mulai Berlangganan":"Uji Coba Gratis 30 Hari"}</button></div>`).join("");
+  if(!document.getElementById("dynStyles")){
+    document.head.insertAdjacentHTML("beforeend", `<style id="dynStyles">
+      .prog{height:8px;border-radius:99px;background:#EDF1EC;overflow:hidden;display:block}
+      .prog span{display:block;height:100%;border-radius:99px}
+      .prog span.trial{background:var(--gold)} .prog span.active{background:var(--lime)} .prog span.expired{background:#D95C4A}
+    </style>`);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", boot);
+</script>
+</body>
+</html>
