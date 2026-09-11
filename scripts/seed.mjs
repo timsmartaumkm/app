@@ -27,13 +27,13 @@ const DB_HOST = process.env.DB_HOST;
 const DB_PORT = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306;
 const DB_USER = process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_PASSWORD;
-const DB_NAME = process.env.DB_NAME;
+const targetDbName = process.env.DB_DEMO_NAME || process.env.DB_NAME;
 
 const missing = [];
 if (!DB_HOST) missing.push("DB_HOST");
 if (!DB_USER) missing.push("DB_USER");
 if (DB_PASSWORD === undefined) missing.push("DB_PASSWORD");
-if (!DB_NAME) missing.push("DB_NAME");
+if (!targetDbName) missing.push("DB_DEMO_NAME or DB_NAME");
 
 if (missing.length > 0) {
   console.error(`Error: Missing required database environment variables: ${missing.join(", ")}`);
@@ -44,13 +44,13 @@ const INCOME_CATS = ["Penjualan Barang", "Penjualan Jasa", "Pendapatan Lainnya",
 const EXPENSE_CATS = ["Pembelian Barang", "Bahan Baku", "Gaji Karyawan", "Sewa Tempat", "Listrik & Air", "Transportasi", "Operasional", "Lainnya"];
 
 async function runSeed() {
-  console.log(`Connecting to MySQL database '${DB_NAME}' on ${DB_HOST}:${DB_PORT}...`);
+  console.log(`Connecting to MySQL database '${targetDbName}' on ${DB_HOST}:${DB_PORT}...`);
   const conn = await mysql.createConnection({
     host: DB_HOST,
     port: DB_PORT,
     user: DB_USER,
     password: DB_PASSWORD,
-    database: DB_NAME,
+    database: targetDbName,
   });
 
   console.log("Connected successfully. Seeding demo and admin accounts...");

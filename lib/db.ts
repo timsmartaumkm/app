@@ -22,19 +22,19 @@ function loadEnvFile() {
 }
 loadEnvFile();
 
-export function getDbConfig() {
+export function getDbConfig(isDemo = false) {
   const host = process.env["DB_HOST"];
   const portStr = process.env["DB_PORT"];
   const user = process.env["DB_USER"];
   const password = process.env["DB_PASSWORD"];
-  const database = process.env["DB_NAME"];
+  const database = isDemo ? (process.env["DB_DEMO_NAME"] || process.env["DB_NAME"]) : process.env["DB_NAME"];
 
   const missing: string[] = [];
   if (!host) missing.push("DB_HOST");
   if (!portStr) missing.push("DB_PORT");
   if (!user) missing.push("DB_USER");
   if (password === undefined) missing.push("DB_PASSWORD");
-  if (!database) missing.push("DB_NAME");
+  if (!database) missing.push(isDemo ? "DB_DEMO_NAME or DB_NAME" : "DB_NAME");
 
   if (missing.length > 0) {
     throw new Error(`Missing required database environment variables: ${missing.join(", ")}`);
@@ -49,11 +49,32 @@ export function getDbConfig() {
 }
 
 let pool: Pool | null = null;
+let demoPool: Pool | null = null;
 let isInitialized = false;
+let isDemoInitialized = false;
 
-export function getPool(): Pool {
+export function getPool(isDemo = false): Pool {
+  if (isDemo) {
+    if (!demoPool) {
+      const config = getDbConfig(true);
+      demoPool = mysql.createPool({
+        host: config.host,
+        port: config.port,
+        user: config.user,
+        password: config.password,
+        database: config.database,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 0,
+      });
+    }
+    return demoPool;
+  }
+
   if (!pool) {
-    const config = getDbConfig();
+    const config = getDbConfig(false);
     pool = mysql.createPool({
       host: config.host,
       port: config.port,
@@ -72,24 +93,26 @@ export function getPool(): Pool {
 
 export async function query<T extends RowDataPacket[] | ResultSetHeader>(
   sql: string,
-  params: any[] = []
+  params: any[] = [],
+  isDemo = false
 ): Promise<T> {
-  const p = getPool();
+  const p = getPool(isDemo);
   const [results] = await p.execute<T>(sql, params);
   return results;
 }
 
 /**
- * Initializes database, tables, and demo seed data if needed.
+ * Initializes database, tables, and system defaults if needed.
  */
-export async function initDatabase(): Promise<boolean> {
-  if (isInitialized) return true;
+export async function initDatabase(isDemo = false): Promise<boolean> {
+  if (isDemo && isDemoInitialized) return true;
+  if (!isDemo && isInitialized) return true;
 
   try {
     // Validate config exists
-    getDbConfig();
+    getDbConfig(isDemo);
 
-    const db = getPool();
+    const db = getPool(isDemo);
 
     // 1. Create tables
     await db.execute(`
@@ -273,10 +296,14 @@ export async function initDatabase(): Promise<boolean> {
       );
     }
 
-    isInitialized = true;
+    if (isDemo) {
+      isDemoInitialized = true;
+    } else {
+      isInitialized = true;
+    }
     return true;
   } catch (err: any) {
-    console.error("Database initialization error:", err.message || err);
+    console.error(`${isDemo ? "Demo" : "Production"} database initialization error:`, err.message || err);
     throw err;
   }
 }

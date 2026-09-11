@@ -161,10 +161,12 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
   const method = request.method;
 
   try {
-    // Ensure database initialized
-    await initDatabase();
-
     const authUser = getAuthUserFromRequest(request);
+    const isDemo = Boolean(authUser?.isDemo);
+
+    // Ensure database initialized for current context
+    await initDatabase(isDemo);
+
     /* ----------------------------------------------------
        AUTH ENDPOINTS
        ---------------------------------------------------- */
@@ -178,7 +180,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       }
 
       const cleanEmail = String(email).toLowerCase().trim();
-      const existing = await query<UserRow[]>("SELECT id FROM users WHERE email = ?", [cleanEmail]);
+      const existing = await query<UserRow[]>("SELECT id FROM users WHERE email = ?", [cleanEmail], false);
       if (existing.length > 0) {
         return jsonResponse({ error: "Email sudah terdaftar." }, 400);
       }
@@ -191,37 +193,40 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       await query(
         `INSERT INTO users (id, nama, email, password_hash, role, aktif, nama_usaha, jenis_usaha, plan, trial_start, trial_end)
          VALUES (?, ?, ?, ?, 'user', TRUE, ?, ?, 'pkg_trial', ?, ?)`,
-        [userId, nama, cleanEmail, pwHash, namaUsaha, jenisUsaha || "Dagang", now, trialEnd]
+        [userId, nama, cleanEmail, pwHash, namaUsaha, jenisUsaha || "Dagang", now, trialEnd],
+        false
       );
 
       // Create business profile
       await query(
         `INSERT INTO business_profiles (id, user_id, nama_usaha, jenis_usaha, pemilik, email, hp, alamat)
          VALUES (?, ?, ?, ?, ?, ?, '', '')`,
-        ["bp_" + userId, userId, namaUsaha, jenisUsaha || "Dagang", nama, cleanEmail]
+        ["bp_" + userId, userId, namaUsaha, jenisUsaha || "Dagang", nama, cleanEmail],
+        false
       );
 
       // Create user settings
-      await query(`INSERT INTO user_settings (user_id, reminder_on, reminder_time, monthly_report_notif) VALUES (?, TRUE, '20:00', TRUE)`, [userId]);
+      await query(`INSERT INTO user_settings (user_id, reminder_on, reminder_time, monthly_report_notif) VALUES (?, TRUE, '20:00', TRUE)`, [userId], false);
 
       // Create default categories
       const INCOME_CATS = ["Penjualan Barang", "Penjualan Jasa", "Pendapatan Lainnya", "Modal", "Lainnya"];
       const EXPENSE_CATS = ["Pembelian Barang", "Bahan Baku", "Gaji Karyawan", "Sewa Tempat", "Listrik & Air", "Transportasi", "Operasional", "Lainnya"];
 
       for (const cat of INCOME_CATS) {
-        await query(`INSERT INTO categories (id, user_id, nama, jenis) VALUES (?, ?, ?, 'pemasukan')`, [uid("cat"), userId, cat]);
+        await query(`INSERT INTO categories (id, user_id, nama, jenis) VALUES (?, ?, ?, 'pemasukan')`, [uid("cat"), userId, cat], false);
       }
       for (const cat of EXPENSE_CATS) {
-        await query(`INSERT INTO categories (id, user_id, nama, jenis) VALUES (?, ?, ?, 'pengeluaran')`, [uid("cat"), userId, cat]);
+        await query(`INSERT INTO categories (id, user_id, nama, jenis) VALUES (?, ?, ?, 'pengeluaran')`, [uid("cat"), userId, cat], false);
       }
 
       // Initial notification
       await query(
         `INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'welcome', 'Uji Coba Gratis 30 Hari dimulai', 'Semua fitur terbuka selama 30 hari.')`,
-        [uid("ntf"), userId]
+        [uid("ntf"), userId],
+        false
       );
 
-      const token = signToken({ userId, email: cleanEmail, role: "user" });
+      const token = signToken({ userId, email: cleanEmail, role: "user", isDemo: false });
       const user = {
         id: userId,
         nama,
@@ -246,7 +251,10 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       const { email, password } = body;
 
       const cleanEmail = String(email || "").toLowerCase().trim();
-      const rows = await query<UserRow[]>("SELECT * FROM users WHERE email = ?", [cleanEmail]);
+      const isDemoLogin = cleanEmail === "demo@smartaumkm.id";
+
+      await initDatabase(isDemoLogin);
+      const rows = await query<UserRow[]>("SELECT * FROM users WHERE email = ?", [cleanEmail], isDemoLogin);
 
       if (rows.length === 0) {
         return jsonResponse({ error: "Email atau password salah." }, 401);
@@ -262,7 +270,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         return jsonResponse({ error: "Email atau password salah." }, 401);
       }
 
-      const token = signToken({ userId: u.id, email: u.email, role: u.role });
+      const token = signToken({ userId: u.id, email: u.email, role: u.role, isDemo: isDemoLogin });
       const user = {
         id: u.id,
         nama: u.nama,
@@ -286,7 +294,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
     if (pathname === "/api/auth/me" && method === "GET") {
       if (!authUser) return jsonResponse({ user: null });
 
-      const rows = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [authUser.userId]);
+      const rows = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [authUser.userId], isDemo);
       if (rows.length === 0) return jsonResponse({ user: null });
 
       const u = rows[0]!;
@@ -316,14 +324,14 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       const body = await request.json();
       const { currentPassword, newPassword } = body;
 
-      const rows = await query<UserRow[]>("SELECT password_hash FROM users WHERE id = ?", [authUser.userId]);
+      const rows = await query<UserRow[]>("SELECT password_hash FROM users WHERE id = ?", [authUser.userId], isDemo);
       if (rows.length === 0) return jsonResponse({ error: "User tidak ditemukan." }, 404);
 
       const isValid = await verifyPassword(currentPassword, rows[0]!.password_hash);
       if (!isValid) return jsonResponse({ error: "Password saat ini salah." }, 400);
 
       const newHash = await hashPassword(newPassword);
-      await query("UPDATE users SET password_hash = ? WHERE id = ?", [newHash, authUser.userId]);
+      await query("UPDATE users SET password_hash = ? WHERE id = ?", [newHash, authUser.userId], isDemo);
 
       return jsonResponse({ success: true, message: "Password berhasil diperbarui." });
     }
@@ -332,8 +340,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
        BOOTSTRAP / FULL SYNC ENDPOINT
        ---------------------------------------------------- */
     if (pathname === "/api/bootstrap" && method === "GET") {
-      // 1. Content and packages are public
-      const contentRows = await query<SiteContentRow[]>("SELECT * FROM site_content LIMIT 1");
+      // 1. Content and packages
+      const contentRows = await query<SiteContentRow[]>("SELECT * FROM site_content LIMIT 1", [], isDemo);
       const rawContent = contentRows[0];
       const content = {
         tagline: rawContent?.tagline || "",
@@ -348,7 +356,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         faq: typeof rawContent?.faq === "string" ? JSON.parse(rawContent.faq) : (rawContent?.faq || []),
       };
 
-      const packageRows = await query<PackageRow[]>("SELECT * FROM packages WHERE aktif = TRUE");
+      const packageRows = await query<PackageRow[]>("SELECT * FROM packages WHERE aktif = TRUE", [], isDemo);
       const packages = packageRows.map((p) => ({
         id: p.id,
         nama: p.nama,
@@ -365,7 +373,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       }
 
       // Fetch user info
-      const uRows = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [authUser.userId]);
+      const uRows = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [authUser.userId], isDemo);
       if (uRows.length === 0) {
         return jsonResponse({ user: null, content, packages });
       }
@@ -388,7 +396,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       };
 
       // Profile
-      const pRows = await query<BusinessProfileRow[]>("SELECT * FROM business_profiles WHERE user_id = ?", [u.id]);
+      const pRows = await query<BusinessProfileRow[]>("SELECT * FROM business_profiles WHERE user_id = ?", [u.id], isDemo);
       const prof = pRows[0];
       const businessProfile = {
         namaUsaha: prof?.nama_usaha || u.nama_usaha || "",
@@ -401,7 +409,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       };
 
       // Settings
-      const sRows = await query<SettingRow[]>("SELECT * FROM user_settings WHERE user_id = ?", [u.id]);
+      const sRows = await query<SettingRow[]>("SELECT * FROM user_settings WHERE user_id = ?", [u.id], isDemo);
       const s = sRows[0];
       const settings = {
         reminderOn: s?.reminder_on !== undefined ? Boolean(s.reminder_on) : true,
@@ -410,7 +418,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       };
 
       // Categories
-      const catRows = await query<CategoryRow[]>("SELECT * FROM categories WHERE user_id = ?", [u.id]);
+      const catRows = await query<CategoryRow[]>("SELECT * FROM categories WHERE user_id = ?", [u.id], isDemo);
       const categories = catRows.map((c) => ({
         id: c.id,
         nama: c.nama,
@@ -420,7 +428,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       // Transactions
       const txRows = await query<TransactionRow[]>(
         "SELECT * FROM transactions WHERE user_id = ? ORDER BY tanggal DESC, created_at DESC",
-        [u.id]
+        [u.id],
+        isDemo
       );
       const transactions = txRows.map((t) => ({
         id: t.id,
@@ -438,7 +447,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       // Notifications
       const notifRows = await query<NotificationRow[]>(
         "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 30",
-        [u.id]
+        [u.id],
+        isDemo
       );
       const notifications = notifRows.map((n) => ({
         id: n.id,
@@ -452,7 +462,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       // Payment Requests
       const prRows = await query<PaymentRequestRow[]>(
         "SELECT * FROM payment_requests WHERE user_id = ? ORDER BY submitted_at DESC",
-        [u.id]
+        [u.id],
+        isDemo
       );
       const paymentRequests = prRows.map((p) => ({
         id: p.id,
@@ -468,7 +479,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       }));
 
       // Reports
-      const reportRows = await query<ReportRow[]>("SELECT * FROM reports WHERE user_id = ?", [u.id]);
+      const reportRows = await query<ReportRow[]>("SELECT * FROM reports WHERE user_id = ?", [u.id], isDemo);
       const reports = reportRows.map((r) => ({
         id: r.id,
         userId: r.user_id,
@@ -485,7 +496,9 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
            FROM users u 
            LEFT JOIN transactions t ON u.id = t.user_id 
            GROUP BY u.id 
-           ORDER BY u.created_at DESC`
+           ORDER BY u.created_at DESC`,
+          [],
+          isDemo
         );
         adminUsers = allURows.map((row) => ({
           id: row.id,
@@ -507,7 +520,9 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           `SELECT pr.*, u.nama as userNama, u.email as userEmail, u.nama_usaha as userNamaUsaha 
            FROM payment_requests pr 
            JOIN users u ON pr.user_id = u.id 
-           ORDER BY pr.submitted_at DESC`
+           ORDER BY pr.submitted_at DESC`,
+          [],
+          isDemo
         );
         allPaymentRequests = allPRows.map((p) => ({
           id: p.id,
@@ -549,7 +564,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
       const rows = await query<TransactionRow[]>(
         "SELECT * FROM transactions WHERE user_id = ? ORDER BY tanggal DESC, created_at DESC",
-        [authUser.userId]
+        [authUser.userId],
+        isDemo
       );
       return jsonResponse(
         rows.map((t) => ({
@@ -590,7 +606,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           akunKeuangan || "usaha",
           deskripsi || "",
           bukti || null,
-        ]
+        ],
+        isDemo
       );
 
       return jsonResponse({
@@ -626,7 +643,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
            deskripsi = COALESCE(?, deskripsi),
            bukti = COALESCE(?, bukti)
          WHERE id = ? AND user_id = ?`,
-        [tanggal, jenis, kategori, nominal !== undefined ? Number(nominal) : null, akunKeuangan, deskripsi, bukti, txId, authUser.userId]
+        [tanggal, jenis, kategori, nominal !== undefined ? Number(nominal) : null, akunKeuangan, deskripsi, bukti, txId, authUser.userId],
+        isDemo
       );
 
       return jsonResponse({ success: true, id: txId });
@@ -635,7 +653,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
     if (pathname.startsWith("/api/transactions/") && method === "DELETE") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
       const txId = pathname.replace("/api/transactions/", "");
-      await query("DELETE FROM transactions WHERE id = ? AND user_id = ?", [txId, authUser.userId]);
+      await query("DELETE FROM transactions WHERE id = ? AND user_id = ?", [txId, authUser.userId], isDemo);
       return jsonResponse({ success: true });
     }
 
@@ -644,7 +662,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
        ---------------------------------------------------- */
     if (pathname === "/api/categories" && method === "GET") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
-      const rows = await query<CategoryRow[]>("SELECT * FROM categories WHERE user_id = ?", [authUser.userId]);
+      const rows = await query<CategoryRow[]>("SELECT * FROM categories WHERE user_id = ?", [authUser.userId], isDemo);
       return jsonResponse(rows.map((r) => ({ id: r.id, nama: r.nama, jenis: r.jenis })));
     }
 
@@ -661,7 +679,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         authUser.userId,
         nama,
         jenis,
-      ]);
+      ], isDemo);
 
       return jsonResponse({ success: true, category: { id: catId, nama, jenis } });
     }
@@ -669,7 +687,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
     if (pathname.startsWith("/api/categories/") && method === "DELETE") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
       const catId = pathname.replace("/api/categories/", "");
-      await query("DELETE FROM categories WHERE id = ? AND user_id = ?", [catId, authUser.userId]);
+      await query("DELETE FROM categories WHERE id = ? AND user_id = ?", [catId, authUser.userId], isDemo);
       return jsonResponse({ success: true });
     }
 
@@ -692,7 +710,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
            hp = VALUES(hp),
            alamat = VALUES(alamat),
            npwp = VALUES(npwp)`,
-        ["bp_" + authUser.userId, authUser.userId, namaUsaha, jenisUsaha, pemilik, email, hp, alamat, npwp]
+        ["bp_" + authUser.userId, authUser.userId, namaUsaha, jenisUsaha, pemilik, email, hp, alamat, npwp],
+        isDemo
       );
 
       if (namaUsaha || jenisUsaha) {
@@ -700,7 +719,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           namaUsaha,
           jenisUsaha,
           authUser.userId,
-        ]);
+        ], isDemo);
       }
 
       return jsonResponse({ success: true });
@@ -718,7 +737,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
            reminder_on = VALUES(reminder_on),
            reminder_time = VALUES(reminder_time),
            monthly_report_notif = VALUES(monthly_report_notif)`,
-        [authUser.userId, reminderOn, reminderTime, monthlyReportNotif]
+        [authUser.userId, reminderOn, reminderTime, monthlyReportNotif],
+        isDemo
       );
 
       return jsonResponse({ success: true });
@@ -729,23 +749,30 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
        ---------------------------------------------------- */
     if (pathname === "/api/notifications/read-all" && method === "POST") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
-      await query("UPDATE notifications SET is_read = TRUE WHERE user_id = ?", [authUser.userId]);
+      await query("UPDATE notifications SET is_read = TRUE WHERE user_id = ?", [authUser.userId], isDemo);
       return jsonResponse({ success: true });
     }
 
     if (pathname === "/api/notifications" && method === "DELETE") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
-      await query("DELETE FROM notifications WHERE user_id = ?", [authUser.userId]);
+      await query("DELETE FROM notifications WHERE user_id = ?", [authUser.userId], isDemo);
       return jsonResponse({ success: true });
     }
 
     /* ----------------------------------------------------
-       FILE UPLOAD (LOCAL FILE STORAGE)
+       FILE UPLOAD (LOCAL FILE STORAGE - SEPARATE DEMO/PROD)
        ---------------------------------------------------- */
     if (pathname === "/api/upload" && method === "POST") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
 
-      await fs.mkdir(UPLOAD_DIR, { recursive: true });
+      const isDemoUpload = Boolean(authUser?.isDemo);
+      const uploadSubDir = isDemoUpload
+        ? (process.env["UPLOAD_DEMO_DIR"] || "public/uploads/demo")
+        : (process.env["UPLOAD_DIR"] || "public/uploads");
+      const targetDir = path.resolve(process.cwd(), uploadSubDir);
+      const publicUrlPrefix = isDemoUpload ? "/uploads/demo/" : "/uploads/";
+
+      await fs.mkdir(targetDir, { recursive: true });
 
       const contentType = request.headers.get("content-type") || "";
 
@@ -764,12 +791,12 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         const ext = mime.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
         const cleanName = (fileName || "upload").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 30);
         const finalFileName = `${Date.now()}_${cleanName}.${ext}`;
-        const filePath = path.join(UPLOAD_DIR, finalFileName);
+        const filePath = path.join(targetDir, finalFileName);
 
         const buffer = Buffer.from(base64Data, "base64");
         await fs.writeFile(filePath, buffer);
 
-        const publicUrl = `/uploads/${finalFileName}`;
+        const publicUrl = `${publicUrlPrefix}${finalFileName}`;
         return jsonResponse({ success: true, url: publicUrl, fileName: finalFileName });
       }
 
@@ -786,11 +813,11 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         const originalName = (file as File).name || "upload.jpg";
         const ext = path.extname(originalName) || ".jpg";
         const finalFileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const filePath = path.join(UPLOAD_DIR, finalFileName);
+        const filePath = path.join(targetDir, finalFileName);
 
         await fs.writeFile(filePath, buffer);
 
-        const publicUrl = `/uploads/${finalFileName}`;
+        const publicUrl = `${publicUrlPrefix}${finalFileName}`;
         return jsonResponse({ success: true, url: publicUrl, fileName: finalFileName });
       }
 
@@ -809,7 +836,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       await query(
         `INSERT INTO payment_requests (id, user_id, package_id, amount, method, proof, status)
          VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
-        [prId, authUser.userId, packageId, Number(amount || 0), payMethod || "transfer_manual", proof || null]
+        [prId, authUser.userId, packageId, Number(amount || 0), payMethod || "transfer_manual", proof || null],
+        isDemo
       );
 
       return jsonResponse({
@@ -841,7 +869,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         const body = await request.json();
         const { aktif } = body;
 
-        await query("UPDATE users SET aktif = ? WHERE id = ?", [Boolean(aktif), userId]);
+        await query("UPDATE users SET aktif = ? WHERE id = ?", [Boolean(aktif), userId], isDemo);
         return jsonResponse({ success: true });
       }
 
@@ -855,7 +883,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           return jsonResponse({ error: "Status verifikasi tidak valid." }, 400);
         }
 
-        const prRows = await query<PaymentRequestRow[]>("SELECT * FROM payment_requests WHERE id = ?", [prId]);
+        const prRows = await query<PaymentRequestRow[]>("SELECT * FROM payment_requests WHERE id = ?", [prId], isDemo);
         if (prRows.length === 0) return jsonResponse({ error: "Data pembayaran tidak ditemukan." }, 404);
 
         const pr = prRows[0]!;
@@ -863,7 +891,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
         await query(
           "UPDATE payment_requests SET status = ?, admin_note = ?, verified_at = ? WHERE id = ?",
-          [status, adminNote || "", now, prId]
+          [status, adminNote || "", now, prId],
+          isDemo
         );
 
         // If approved, activate user subscription
@@ -871,18 +900,21 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           const subStart = now;
           const subEnd = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000); // 6 months
           await query(
-            "UPDATE users SET plan = ?, sub_status_manual = 'active', sub_start = ?, sub_end = ? WHERE id = ?",
-            [pr.package_id, subStart, subEnd, pr.user_id]
+            "UPDATE users SET sub_status_manual = 'active', sub_start = ?, sub_end = ? WHERE id = ?",
+            [subStart, subEnd, pr.user_id],
+            isDemo
           );
 
           await query(
-            "INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'sub_approved', 'Pembayaran Diterima', 'Langganan 6 bulan Anda telah aktif sampai ' + ?)",
-            [uid("ntf"), pr.user_id, subEnd.toISOString().slice(0, 10)]
+            "INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'sub_active', 'Langganan Aktif!', ?)",
+            [uid("ntf"), pr.user_id, `Langganan paket berhasil diverifikasi. Aktif hingga ${subEnd.toISOString().slice(0, 10)}.`],
+            isDemo
           );
         } else if (status === "rejected") {
           await query(
             "INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'sub_rejected', 'Pembayaran Ditolak', ?)",
-            [uid("ntf"), pr.user_id, adminNote ? `Alasan: ${adminNote}` : "Bukti transfer tidak sesuai."]
+            [uid("ntf"), pr.user_id, adminNote ? `Alasan: ${adminNote}` : "Bukti transfer tidak sesuai."],
+            isDemo
           );
         }
 
@@ -907,7 +939,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
              email = COALESCE(?, email),
              faq = COALESCE(?, faq)
            WHERE id = 'default'`,
-          [tagline, sub, tentang, wa, aboutTitle, about, visi, misi, email, faq ? JSON.stringify(faq) : null]
+          [tagline, sub, tentang, wa, aboutTitle, about, visi, misi, email, faq ? JSON.stringify(faq) : null],
+          isDemo
         );
 
         return jsonResponse({ success: true });
@@ -922,7 +955,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         await query(
           `INSERT INTO packages (id, nama, harga, durasi, satuan, batas, fitur, aktif)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [pkgId, nama, Number(harga), Number(durasi), satuan || "bulan", Number(batas || 0), JSON.stringify(fitur || []), aktif !== false]
+          [pkgId, nama, Number(harga), Number(durasi), satuan || "bulan", Number(batas || 0), JSON.stringify(fitur || []), aktif !== false],
+          isDemo
         );
 
         return jsonResponse({ success: true, id: pkgId });
@@ -943,7 +977,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
              fitur = COALESCE(?, fitur),
              aktif = COALESCE(?, aktif)
            WHERE id = ?`,
-          [nama, harga !== undefined ? Number(harga) : null, durasi !== undefined ? Number(durasi) : null, satuan, batas !== undefined ? Number(batas) : null, fitur ? JSON.stringify(fitur) : null, aktif !== undefined ? Boolean(aktif) : null, pkgId]
+          [nama, harga !== undefined ? Number(harga) : null, durasi !== undefined ? Number(durasi) : null, satuan, batas !== undefined ? Number(batas) : null, fitur ? JSON.stringify(fitur) : null, aktif !== undefined ? Boolean(aktif) : null, pkgId],
+          isDemo
         );
 
         return jsonResponse({ success: true });

@@ -10,6 +10,7 @@
     "start": "node .output/server/index.mjs",
     "preview": "node .output/server/index.mjs",
     "seed": "node scripts/seed.mjs",
+    "clean:demo": "node scripts/clean-demo.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

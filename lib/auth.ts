@@ -15,6 +15,7 @@ export interface JWTPayload {
   userId: string;
   email: string;
   role: "user" | "admin";
+  isDemo?: boolean;
 }
 
 export async function hashPassword(password: string): Promise<string> {
