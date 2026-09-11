@@ -169,17 +169,84 @@ function formatDateString(val: any): string {
   return String(val).slice(0, 10);
 }
 
+const MIME_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+  ".pdf": "application/pdf",
+  ".bmp": "image/bmp",
+  ".ico": "image/x-icon",
+};
+
 export async function handleApiRequest(request: Request): Promise<Response | null> {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
-  if (!pathname.startsWith("/api/")) {
+  if (!pathname.startsWith("/api/") && !pathname.startsWith("/uploads/")) {
     return null;
   }
 
   const method = request.method;
 
   try {
+    /* ----------------------------------------------------
+       STREAM UPLOADED FILES (/uploads/* or /api/uploads/*)
+       ---------------------------------------------------- */
+    if ((pathname.startsWith("/uploads/") || pathname.startsWith("/api/uploads/")) && (method === "GET" || method === "HEAD")) {
+      const isDemoRequest = pathname.startsWith("/uploads/demo/") || pathname.startsWith("/api/uploads/demo/");
+
+      let rawRelative = pathname;
+      if (pathname.startsWith("/api/uploads/demo/")) rawRelative = pathname.slice("/api/uploads/demo/".length);
+      else if (pathname.startsWith("/api/uploads/")) rawRelative = pathname.slice("/api/uploads/".length);
+      else if (pathname.startsWith("/uploads/demo/")) rawRelative = pathname.slice("/uploads/demo/".length);
+      else if (pathname.startsWith("/uploads/")) rawRelative = pathname.slice("/uploads/".length);
+
+      // Clean and sanitize to prevent directory traversal
+      const fileName = path.basename(decodeURIComponent(rawRelative));
+      if (!fileName || fileName.startsWith(".")) {
+        return new Response("Not Found", { status: 404 });
+      }
+
+      // Candidate search locations in order of priority
+      const candidateDirs = [
+        getTargetUploadDir(isDemoRequest),
+        getTargetUploadDir(!isDemoRequest),
+        path.resolve(process.cwd(), "public/uploads"),
+        path.resolve(process.cwd(), "public/uploads/demo"),
+      ];
+
+      let foundBuffer: Buffer | null = null;
+      for (const dir of candidateDirs) {
+        const fullPath = path.join(dir, fileName);
+        try {
+          foundBuffer = await fs.readFile(fullPath);
+          break;
+        } catch {}
+      }
+
+      if (!foundBuffer) {
+        return new Response("File Not Found", { status: 404 });
+      }
+
+      const ext = path.extname(fileName).toLowerCase();
+      const contentType = MIME_TYPES[ext] || "application/octet-stream";
+
+      const headers = new Headers({
+        "Content-Type": contentType,
+        "Content-Length": foundBuffer.length.toString(),
+        "Cache-Control": "public, max-age=31536000, immutable",
+      });
+
+      if (method === "HEAD") {
+        return new Response(null, { status: 200, headers });
+      }
+
+      return new Response(new Uint8Array(foundBuffer), { status: 200, headers });
+    }
+
     const authUser = getAuthUserFromRequest(request);
     const isDemo = Boolean(authUser?.isDemo);
 

@@ -8,7 +8,7 @@ export function apiDevPlugin(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next) => {
         const urlString = req.url || "";
-        if (!urlString.startsWith("/api/")) {
+        if (!urlString.startsWith("/api/") && !urlString.startsWith("/uploads/")) {
           return next();
         }
 
