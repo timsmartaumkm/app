@@ -968,68 +968,6 @@ function subscriptionState(u){
    // memakai backend API. Selebihnya (UI, laporan, chart) tidak berubah.
    -------------------------------------------------------------------------- */
 
-/* ==========================================================================
-   API CLIENT & BACKEND INTEGRATION
-   ========================================================================== */
-const API = {
-  getToken(){ return localStorage.getItem("smarta_token") || sessionStorage.getItem("smarta_token"); },
-  setToken(t){
-    if(t){ localStorage.setItem("smarta_token", t); sessionStorage.setItem("smarta_token", t); }
-    else { localStorage.removeItem("smarta_token"); sessionStorage.removeItem("smarta_token"); }
-  },
-  async request(path, opts = {}){
-    const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
-    const token = this.getToken();
-    if(token) headers["Authorization"] = "Bearer " + token;
-    try {
-      const res = await fetch(path, { ...opts, headers });
-      const data = await res.json().catch(() => ({}));
-      if(!res.ok) throw new Error(data.error || ("Request failed with status " + res.status));
-      return data;
-    } catch(err) {
-      console.warn("API request error on " + path + ":", err);
-      throw err;
-    }
-  },
-  get(p){ return this.request(p, { method: "GET" }); },
-  post(p, b){ return this.request(p, { method: "POST", body: JSON.stringify(b) }); },
-  put(p, b){ return this.request(p, { method: "PUT", body: JSON.stringify(b) }); },
-  del(p){ return this.request(p, { method: "DELETE" }); },
-  async uploadFile(dataUrl, fileName){
-    return this.post("/api/upload", { dataUrl, fileName });
-  }
-};
-
-async function bootstrapApp(){
-  try {
-    const data = await API.get("/api/bootstrap");
-    if(data){
-      if(data.content) DB.content = Object.assign({}, DEFAULT_CONTENT, data.content);
-      if(Array.isArray(data.packages) && data.packages.length > 0) DB.packages = data.packages;
-      if(data.user){
-        DB.session = { userId: data.user.id, at: Date.now() };
-        DB.users = [data.user];
-        if(Array.isArray(data.adminUsers) && data.adminUsers.length > 0) DB.users = data.adminUsers;
-        if(data.businessProfile) DB.businessProfiles[data.user.id] = data.businessProfile;
-        if(data.settings) DB.settings[data.user.id] = data.settings;
-        if(Array.isArray(data.categories)) DB.categories[data.user.id] = data.categories;
-        if(Array.isArray(data.transactions)) DB.transactions = data.transactions;
-        if(Array.isArray(data.notifications)) DB.notifications[data.user.id] = data.notifications;
-        if(Array.isArray(data.paymentRequests)) DB.paymentRequests = data.paymentRequests;
-        if(Array.isArray(data.allPaymentRequests)) DB.paymentRequests = data.allPaymentRequests;
-        if(Array.isArray(data.reports)) DB.reports = data.reports;
-      } else {
-        DB.session = null;
-      }
-    }
-  } catch(e) {
-    console.warn("Bootstrap fallback to local cache:", e);
-  }
-  migrateDB();
-  migrateBarang();
-  save();
-}
-
 
 /* ==========================================================================
    API CLIENT & BACKEND INTEGRATION
@@ -1191,7 +1129,7 @@ function openAuth(mode){
    yang aman untuk produksi. Ganti dengan auth backend (session/JWT + hashing
    password di server) — cukup ubah doLogin/doRegister/confirmLogout dan
    currentUser(); UI tidak perlu diubah. */
-async async function doLogin(e){
+async function doLogin(e){
   if(e) e.preventDefault();
   const email = val("li_email"), pass = val("li_pass");
   let ok = setErr("li_email", !email?"Email wajib diisi.":(!isEmail(email)?"Format email tidak valid.":""));
@@ -1618,7 +1556,7 @@ function snap(){
 function resetTxForm(){
   uiState.buktiData=null; uiState.editingTx=null; go("tambah"); toast("Formulir direset.","info");
 }
-async async function saveTx(e){
+async function saveTx(e){
   if(e) e.preventDefault();
   const u = currentUser();
   const jenis=val("tx_jenis"), tanggal=val("tx_tanggal"), nominal=val("tx_nominal"),
@@ -1798,7 +1736,7 @@ function catForm(jenis, id){
       <button class="btn btn-green" onclick="catSave('${jenis}','${id||""}')">Simpan</button></div>`);
   setTimeout(()=>document.getElementById("cat_nama").focus(),40);
 }
-async async function catSave(jenis,id){
+async function catSave(jenis,id){
   const nama = val("cat_nama");
   if(!setErr("cat_nama", !nama?"Nama kategori wajib diisi.":(nama.length<3?"Minimal 3 karakter.":
       (myCats().some(c=>c.nama.toLowerCase()===nama.toLowerCase() && c.id!==id)?"Kategori sudah ada.":"")))) return false;
@@ -2071,7 +2009,7 @@ function subscribeStart(pkgId){
    user klik "Bayar melalui WhatsApp" -> membuka wa.me dengan pesan otomatis
    -> pengajuan tercatat sebagai PaymentRequest (status pending)
    -> admin approve/reject di menu Verifikasi Pembayaran (memanggil activatePaidSub). */
-async async function submitPayment(pkgId){
+async function submitPayment(pkgId){
   const u=currentUser(), p=DB.packages.find(x=>x.id===pkgId); if(!p) return false;
   const pesan = waPesanLangganan(p);
   const link = waLink(pesan);
@@ -2224,7 +2162,7 @@ function bizForm(){
   <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
     <button class="btn btn-green" onclick="bizSave()">Simpan Perubahan</button></div>`);
 }
-async async function bizSave(){
+async function bizSave(){
   const nama=val("bz_nama"), email=val("bz_email"), pemilik=val("bz_pemilik"), hp=val("bz_hp"), alamat=val("bz_alamat"), npwp=val("bz_npwp");
   let ok = setErr("bz_nama", !nama?"Nama usaha wajib diisi.":(nama.length<3?"Minimal 3 karakter.":""));
   ok = setErr("bz_pemilik", !pemilik?"Nama pemilik wajib diisi.":"") && ok;
@@ -2253,7 +2191,7 @@ function pwForm(){
     <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
       <button class="btn btn-green" onclick="pwSave()">Simpan</button></div>`);
 }
-async async function pwSave(){
+async function pwSave(){
   const u=currentUser(), o=val("pw_old"), n=val("pw_new"), n2=val("pw_new2");
   let ok = setErr("pw_old", !o?"Password lama wajib diisi.":"");
   ok = setErr("pw_new", !n?"Password baru wajib diisi.":(n.length<6?"Minimal 6 karakter.":"")) && ok;
@@ -2263,11 +2201,6 @@ async async function pwSave(){
     await API.put("/api/auth/password", { currentPassword: o, newPassword: n });
     closeModal(); toast("Password berhasil diubah."); return true;
   } catch(err){
-    setErr("pw_old", err.message || "Password lama salah.");
-    toast(err.message || "Password lama salah.", "error");
-    return false;
-  }
-} catch(err){
     setErr("pw_old", err.message || "Password lama salah.");
     toast(err.message || "Password lama salah.", "error");
     return false;
@@ -2572,7 +2505,7 @@ function botReply(q){
 }
 
 /* ================= BOOT ================= */
-async async function boot(){
+async function boot(){
   load();
   await bootstrapApp();
   renderLanding();
@@ -2580,10 +2513,6 @@ async async function boot(){
   document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ closeModal(); closeSidebar(); } });
   window.SMARTA = Object.assign(window.SMARTA || {}, { DB, profitLoss, interpret, totals, monthlySeries,
     subStatus, subscriptionState, trialLeft, rp, save, go, toTransactionDTO, fromTransactionDTO, DataStore, API, bootstrapApp });
-}, { DB, profitLoss, interpret, totals, monthlySeries,
-    subStatus, subscriptionState, trialLeft, rp, save, go, toTransactionDTO, fromTransactionDTO, DataStore, API, bootstrapApp });
-}, { DB, profitLoss, interpret, totals, monthlySeries,
-    subStatus, subscriptionState, trialLeft, rp, save, go, toTransactionDTO, fromTransactionDTO, DataStore });
 }
 
 /* ---- Landing dynamic content + chat widget + progress bar styles ---- */
