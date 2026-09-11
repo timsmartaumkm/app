@@ -4,7 +4,26 @@ import { query, initDatabase } from "./db";
 import { hashPassword, verifyPassword, signToken, getAuthUserFromRequest } from "./auth";
 import type { RowDataPacket } from "mysql2/promise";
 
-const UPLOAD_DIR = path.resolve(process.cwd(), "public/uploads");
+function getTargetUploadDir(isDemoUpload: boolean): string {
+  if (isDemoUpload) {
+    const customDemoDir = process.env["UPLOAD_DEMO_DIR"];
+    if (customDemoDir) {
+      return path.isAbsolute(customDemoDir) ? customDemoDir : path.resolve(process.cwd(), customDemoDir);
+    }
+    const customBaseDir = process.env["UPLOAD_DIR"];
+    if (customBaseDir) {
+      const base = path.isAbsolute(customBaseDir) ? customBaseDir : path.resolve(process.cwd(), customBaseDir);
+      return path.join(base, "demo");
+    }
+    return path.resolve(process.cwd(), "public/uploads/demo");
+  }
+
+  const customDir = process.env["UPLOAD_DIR"];
+  if (customDir) {
+    return path.isAbsolute(customDir) ? customDir : path.resolve(process.cwd(), customDir);
+  }
+  return path.resolve(process.cwd(), "public/uploads");
+}
 
 interface UserRow extends RowDataPacket {
   id: string;
@@ -766,10 +785,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
 
       const isDemoUpload = Boolean(authUser?.isDemo);
-      const uploadSubDir = isDemoUpload
-        ? (process.env["UPLOAD_DEMO_DIR"] || "public/uploads/demo")
-        : (process.env["UPLOAD_DIR"] || "public/uploads");
-      const targetDir = path.resolve(process.cwd(), uploadSubDir);
+      const targetDir = getTargetUploadDir(isDemoUpload);
       const publicUrlPrefix = isDemoUpload ? "/uploads/demo/" : "/uploads/";
 
       await fs.mkdir(targetDir, { recursive: true });

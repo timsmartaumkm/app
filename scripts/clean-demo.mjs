@@ -27,7 +27,8 @@ const DB_PORT = process.env.DB_DEMO_PORT ? parseInt(process.env.DB_DEMO_PORT, 10
 const DB_USER = process.env.DB_DEMO_USER || process.env.DB_USER;
 const DB_PASSWORD = process.env.DB_DEMO_PASSWORD !== undefined ? process.env.DB_DEMO_PASSWORD : process.env.DB_PASSWORD;
 const DB_DEMO_NAME = process.env.DB_DEMO_NAME || process.env.DB_NAME;
-const UPLOAD_DEMO_DIR = process.env.UPLOAD_DEMO_DIR || "public/uploads/demo";
+const rawDemoUploadDir = process.env.UPLOAD_DEMO_DIR || (process.env.UPLOAD_DIR ? path.join(process.env.UPLOAD_DIR, "demo") : "public/uploads/demo");
+const demoUploadPath = path.isAbsolute(rawDemoUploadDir) ? rawDemoUploadDir : path.resolve(process.cwd(), rawDemoUploadDir);
 
 if (!DB_HOST || !DB_USER || DB_PASSWORD === undefined || !DB_DEMO_NAME) {
   console.error("Error: Missing required database environment variables (DB_DEMO_HOST/DB_HOST, DB_DEMO_USER/DB_USER, DB_DEMO_PASSWORD/DB_PASSWORD, DB_DEMO_NAME).");
@@ -65,7 +66,6 @@ async function cleanDemo() {
   }
 
   // 2. Clean Demo Upload Files
-  const demoUploadPath = path.resolve(process.cwd(), UPLOAD_DEMO_DIR);
   if (fs.existsSync(demoUploadPath)) {
     const files = fs.readdirSync(demoUploadPath);
     let count = 0;
@@ -77,10 +77,10 @@ async function cleanDemo() {
         count++;
       } catch (e) {}
     }
-    console.log(`✓ Cleaned ${count} demo uploaded files in '${UPLOAD_DEMO_DIR}'.`);
+    console.log(`✓ Cleaned ${count} demo uploaded files in '${demoUploadPath}'.`);
   } else {
     fs.mkdirSync(demoUploadPath, { recursive: true });
-    console.log(`✓ Created demo upload directory '${UPLOAD_DEMO_DIR}'.`);
+    console.log(`✓ Created demo upload directory '${demoUploadPath}'.`);
   }
 
   console.log("\nDemo cleanup completed successfully! Run `npm run seed` to reseed demo data anytime.\n");
