@@ -5,5 +5,8 @@ export default defineConfig({
   tanstackStart: {
     srcDirectory: ".",
   },
+  nitro: {
+    preset: "node-server",
+  },
   plugins: [apiDevPlugin()],
 });
