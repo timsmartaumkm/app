@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-const htmlPath = path.resolve("./smarta.html");
+const htmlPath = path.resolve("./public/smarta.html");
 let html = fs.readFileSync(htmlPath, "utf-8");
 
 // 1. Add API client and updated load/bootstrap functions
@@ -428,6 +428,5 @@ const newBoot = `async function boot(){
 
 html = html.replace(bootRegex, newBoot);
 
-fs.writeFileSync("./smarta.html", html, "utf-8");
 fs.writeFileSync("./public/smarta.html", html, "utf-8");
-console.log("Successfully updated smarta.html and public/smarta.html!");
+console.log("Successfully updated public/smarta.html!");

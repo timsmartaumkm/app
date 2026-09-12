@@ -357,7 +357,7 @@ export const DEFAULT_CONTENT = {
   tagline: "Catat keuangan usaha, pahami untung ruginya.",
   sub: "SMARTA UMKM membantu pelaku usaha dagang dan jasa mencatat transaksi harian, memisahkan keuangan usaha dan pribadi, serta membaca laporan laba rugi dengan bahasa yang mudah dipahami.",
   tentang: "SMARTA UMKM adalah platform pencatatan keuangan sederhana untuk UMKM Indonesia — pembukuan rapi, laporan otomatis, tanpa istilah akuntansi yang membingungkan.",
-  wa: "0895635159345",
+  wa: "0882000625630",
   about_title: "Tentang SMARTA UMKM",
   about: "SMARTA UMKM adalah platform pencatatan keuangan sederhana yang membantu UMKM mencatat transaksi, memisahkan keuangan usaha dan pribadi, serta memahami kondisi keuangan usaha.",
   visi: "Menjadi pendamping keuangan digital yang paling mudah digunakan oleh pelaku UMKM di Indonesia.",
