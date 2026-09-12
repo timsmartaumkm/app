@@ -2,12 +2,29 @@ import type { Plugin } from "vite";
 import { handleApiRequest } from "./api-handler";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+import fs from "node:fs";
+import path from "node:path";
+
 export function apiDevPlugin(): Plugin {
   return {
     name: "smarta-api-dev-server",
     configureServer(server) {
       server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next) => {
         const urlString = req.url || "";
+        const [pathname] = urlString.split("?");
+
+        // Serve smarta.html directly at root / or /index.html or /smarta.html
+        if (pathname === "/" || pathname === "/index.html" || pathname === "/smarta.html") {
+          const htmlPath = path.resolve("./public/smarta.html");
+          if (fs.existsSync(htmlPath)) {
+            const html = fs.readFileSync(htmlPath, "utf-8");
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.end(html);
+            return;
+          }
+        }
+
         if (!urlString.startsWith("/api/") && !urlString.startsWith("/uploads/")) {
           return next();
         }

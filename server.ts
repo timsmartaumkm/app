@@ -43,10 +43,31 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+import fs from "node:fs";
+import path from "node:path";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const url = new URL(request.url);
+
+      // Serve smarta.html directly at root / or /index.html or /smarta.html
+      if (url.pathname === "/" || url.pathname === "/index.html" || url.pathname === "/smarta.html") {
+        const candidatePaths = [
+          path.resolve("./public/smarta.html"),
+          path.resolve(".output/public/smarta.html"),
+        ];
+        for (const candidate of candidatePaths) {
+          if (fs.existsSync(candidate)) {
+            const html = fs.readFileSync(candidate, "utf-8");
+            return new Response(html, {
+              status: 200,
+              headers: { "content-type": "text/html; charset=utf-8" },
+            });
+          }
+        }
+      }
+
       if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/uploads/")) {
         const apiResponse = await handleApiRequest(request);
         if (apiResponse) return apiResponse;
