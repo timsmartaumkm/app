@@ -25,6 +25,39 @@ function getTargetUploadDir(isDemoUpload: boolean): string {
   return path.resolve(process.cwd(), "public/uploads");
 }
 
+async function deleteUploadFile(filePathOrUrl: string | null | undefined, isDemo: boolean): Promise<boolean> {
+  if (!filePathOrUrl || typeof filePathOrUrl !== "string") return false;
+  if (filePathOrUrl.startsWith("data:")) return false;
+
+  let rawRelative = filePathOrUrl;
+  if (rawRelative.startsWith("/api/uploads/demo/")) rawRelative = rawRelative.slice("/api/uploads/demo/".length);
+  else if (rawRelative.startsWith("/api/uploads/")) rawRelative = rawRelative.slice("/api/uploads/".length);
+  else if (rawRelative.startsWith("/uploads/demo/")) rawRelative = rawRelative.slice("/uploads/demo/".length);
+  else if (rawRelative.startsWith("/uploads/")) rawRelative = rawRelative.slice("/uploads/".length);
+
+  const fileName = path.basename(decodeURIComponent(rawRelative));
+  if (!fileName || fileName.startsWith(".")) return false;
+
+  const candidateDirs = [
+    getTargetUploadDir(isDemo),
+    getTargetUploadDir(!isDemo),
+    path.resolve(process.cwd(), "public/uploads"),
+    path.resolve(process.cwd(), "public/uploads/demo"),
+  ];
+
+  let deleted = false;
+  for (const dir of candidateDirs) {
+    const fullPath = path.join(dir, fileName);
+    try {
+      await fs.unlink(fullPath);
+      deleted = true;
+    } catch {
+      // Ignored if file does not exist in candidate directory
+    }
+  }
+  return deleted;
+}
+
 interface UserRow extends RowDataPacket {
   id: string;
   nama: string;
@@ -731,6 +764,18 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       const body = await request.json();
       const { tanggal, jenis, kategori, nominal, akunKeuangan, deskripsi, bukti } = body;
 
+      // If bukti is being replaced or removed, delete the old file
+      if (bukti !== undefined) {
+        const existing = await query<TransactionRow[]>(
+          "SELECT bukti FROM transactions WHERE id = ? AND user_id = ?",
+          [txId, authUser.userId],
+          isDemo
+        );
+        if (existing.length > 0 && existing[0]?.bukti && existing[0].bukti !== bukti) {
+          await deleteUploadFile(existing[0].bukti, isDemo);
+        }
+      }
+
       await query(
         `UPDATE transactions SET 
            tanggal = COALESCE(?, tanggal),
@@ -751,6 +796,20 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
     if (pathname.startsWith("/api/transactions/") && method === "DELETE") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
       const txId = pathname.replace("/api/transactions/", "");
+
+      // 1. Fetch existing transaction to find attached proof (bukti) file
+      const existing = await query<TransactionRow[]>(
+        "SELECT bukti FROM transactions WHERE id = ? AND user_id = ?",
+        [txId, authUser.userId],
+        isDemo
+      );
+
+      // 2. Delete file from disk if present
+      if (existing.length > 0 && existing[0]?.bukti) {
+        await deleteUploadFile(existing[0].bukti, isDemo);
+      }
+
+      // 3. Delete database record
       await query("DELETE FROM transactions WHERE id = ? AND user_id = ?", [txId, authUser.userId], isDemo);
       return jsonResponse({ success: true });
     }
@@ -917,6 +976,18 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       }
 
       return jsonResponse({ error: "Unsupported Content-Type." }, 400);
+    }
+
+    if (pathname === "/api/upload" && method === "DELETE") {
+      if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const body = await request.json().catch(() => ({}));
+      const { url, fileName } = body;
+      const target = url || fileName;
+      if (!target) return jsonResponse({ error: "URL atau fileName wajib diisi." }, 400);
+
+      const isDemoUpload = Boolean(authUser?.isDemo);
+      const deleted = await deleteUploadFile(target, isDemoUpload);
+      return jsonResponse({ success: true, deleted });
     }
 
     /* ----------------------------------------------------
