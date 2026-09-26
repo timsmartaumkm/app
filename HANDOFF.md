@@ -1,3 +1,12 @@
+> **Admin implementation update (2026-09-26)**
+> The current frontend is `public/smarta.html`, with APIs in `lib/api-handler.ts`. The original standalone documentation below is historical.
+>
+> Admin user subscription changes, account activation/deactivation, user deletion, package creation/editing/toggling, and content/FAQ changes now persist through authenticated APIs. User deletion cascades to related database records; uploaded files are not removed by this action. Disabled packages remain visible to admins. Failed saves show errors instead of reporting success.
+>
+> Payment verification uses a database transaction, accepts only pending requests, and activates the selected package for its configured duration (months are 30 days). Rejections require a reason. Dashboard user transaction totals use backend aggregates.
+>
+> Validation: `node scripts/test-admin.mjs` runs mocked API regression checks and frontend failure checks without connecting to a database. Live database/browser acceptance testing is still required.
+
 # SMARTA UMKM — MVP HANDOFF DOCUMENTATION
 
 > **Production handoff note**

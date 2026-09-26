@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { query, initDatabase } from "./db";
+import { query, initDatabase, getPool } from "./db";
 import { hashPassword, verifyPassword, signToken, getAuthUserFromRequest } from "./auth";
 import type { RowDataPacket } from "mysql2/promise";
 
@@ -285,6 +285,10 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     // Ensure database initialized for current context
     await initDatabase(isDemo);
+    if (authUser) {
+      const accounts = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [authUser.userId], isDemo);
+      if (!accounts.length || !accounts[0]!.aktif) return jsonResponse({ error: "Akun tidak aktif. Silakan masuk kembali." }, 403);
+    }
 
     /* ----------------------------------------------------
        AUTH ENDPOINTS
@@ -487,7 +491,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         faq: typeof rawContent?.faq === "string" ? JSON.parse(rawContent.faq) : (rawContent?.faq || []),
       };
 
-      const packageRows = await query<PackageRow[]>("SELECT * FROM packages WHERE aktif = TRUE", [], isDemo);
+      const packageRows = await query<PackageRow[]>(authUser?.role === "admin" ? "SELECT * FROM packages" : "SELECT * FROM packages WHERE aktif = TRUE", [], isDemo);
       const packages = packageRows.map((p) => ({
         id: p.id,
         nama: p.nama,
@@ -623,7 +627,9 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       let allPaymentRequests: any[] = [];
       if (u.role === "admin") {
         const allURows = await query<UserRow[]>(
-          `SELECT u.*, COUNT(t.id) as txCount 
+          `SELECT u.*, COUNT(t.id) as txCount,
+           COALESCE(SUM(CASE WHEN t.jenis = 'pemasukan' THEN t.nominal ELSE 0 END), 0) as income,
+           COALESCE(SUM(CASE WHEN t.jenis = 'pengeluaran' THEN t.nominal ELSE 0 END), 0) as expense
            FROM users u 
            LEFT JOIN transactions t ON u.id = t.user_id 
            GROUP BY u.id 
@@ -645,6 +651,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           subStatusManual: row.sub_status_manual,
           subEnd: row.sub_end ? new Date(row.sub_end).toISOString() : null,
           txCount: Number(row.txCount || 0),
+          income: Number(row['income'] || 0), expense: Number(row['expense'] || 0),
+          createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
         }));
 
         const allPRows = await query<PaymentRequestRow[]>(
@@ -1029,13 +1037,37 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         return jsonResponse({ error: "Akses ditolak: Hanya untuk administrator." }, 403);
       }
 
-      // PUT /api/admin/users/:id/status
-      if (pathname.startsWith("/api/admin/users/") && pathname.endsWith("/status") && method === "PUT") {
-        const userId = pathname.replace("/api/admin/users/", "").replace("/status", "");
-        const body = await request.json();
-        const { aktif } = body;
+      const adminRows = await query<UserRow[]>("SELECT * FROM users WHERE id = ? AND role = 'admin' AND aktif = TRUE", [authUser.userId], isDemo);
+      if (!adminRows.length) return jsonResponse({ error: "Akses ditolak." }, 403);
 
-        await query("UPDATE users SET aktif = ? WHERE id = ?", [Boolean(aktif), userId], isDemo);
+      const userMatch = pathname.match(/^\/api\/admin\/users\/([^/]+)(\/status)?$/);
+      if (userMatch && ((method === "PUT" && userMatch[2]) || (method === "DELETE" && !userMatch[2]))) {
+        const userId = userMatch[1];
+        const rows = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [userId], isDemo);
+        if (!rows.length) return jsonResponse({ error: "Pengguna tidak ditemukan." }, 404);
+        if (rows[0]!.role === "admin") return jsonResponse({ error: "Akun administrator tidak dapat diubah melalui menu ini." }, 403);
+        if (method === "DELETE") {
+          // Related records are removed by the schema's ON DELETE CASCADE constraints.
+          await query("DELETE FROM users WHERE id = ?", [userId], isDemo);
+          return jsonResponse({ success: true });
+        }
+        const { aktif, status, plan } = await request.json();
+        if (aktif !== undefined && typeof aktif !== "boolean") return jsonResponse({ error: "Status akun tidak valid." }, 400);
+        if (status !== undefined) {
+          if (!["trial", "active", "expired"].includes(status)) return jsonResponse({ error: "Status langganan tidak valid." }, 400);
+          const packages = await query<PackageRow[]>("SELECT * FROM packages WHERE id = ?", [plan || rows[0]!.plan], isDemo);
+          if (!packages.length) return jsonResponse({ error: "Paket tidak ditemukan." }, 400);
+          const pkg = packages[0]!;
+          const now = new Date();
+          const end = new Date(now.getTime() + Number(pkg.durasi) * (pkg.satuan === "bulan" ? 30 : 1) * 86400000);
+          await query(`UPDATE users SET plan = ?, aktif = ?, sub_status_manual = ?, sub_start = ?, sub_end = ?,
+            trial_start = IF(? = 'trial', ?, trial_start), trial_end = IF(? = 'trial', ?, trial_end) WHERE id = ?`,
+            [pkg.id, aktif ?? Boolean(rows[0]!.aktif), status === "trial" ? null : status,
+             status === "active" ? now : null, status === "active" ? end : null,
+             status, now, status, new Date(now.getTime() + 30 * 86400000), userId], isDemo);
+        } else if (aktif !== undefined) {
+          await query("UPDATE users SET aktif = ? WHERE id = ?", [aktif, userId], isDemo);
+        } else return jsonResponse({ error: "Perubahan wajib diisi." }, 400);
         return jsonResponse({ success: true });
       }
 
@@ -1049,48 +1081,42 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           return jsonResponse({ error: "Status verifikasi tidak valid." }, 400);
         }
 
-        const prRows = await query<PaymentRequestRow[]>("SELECT * FROM payment_requests WHERE id = ?", [prId], isDemo);
-        if (prRows.length === 0) return jsonResponse({ error: "Data pembayaran tidak ditemukan." }, 404);
-
-        const pr = prRows[0]!;
-        const now = new Date();
-
-        await query(
-          "UPDATE payment_requests SET status = ?, admin_note = ?, verified_at = ? WHERE id = ?",
-          [status, adminNote || "", now, prId],
-          isDemo
-        );
-
-        // If approved, activate user subscription
-        if (status === "approved") {
-          const subStart = now;
-          const subEnd = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000); // 6 months
-          await query(
-            "UPDATE users SET sub_status_manual = 'active', sub_start = ?, sub_end = ? WHERE id = ?",
-            [subStart, subEnd, pr.user_id],
-            isDemo
-          );
-
-          await query(
-            "INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'sub_active', 'Langganan Aktif!', ?)",
-            [uid("ntf"), pr.user_id, `Langganan paket berhasil diverifikasi. Aktif hingga ${subEnd.toISOString().slice(0, 10)}.`],
-            isDemo
-          );
-        } else if (status === "rejected") {
-          await query(
-            "INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'sub_rejected', 'Pembayaran Ditolak', ?)",
-            [uid("ntf"), pr.user_id, adminNote ? `Alasan: ${adminNote}` : "Bukti transfer tidak sesuai."],
-            isDemo
-          );
+        if (status === "rejected" && (typeof adminNote !== "string" || !adminNote.trim())) {
+          return jsonResponse({ error: "Alasan penolakan wajib diisi." }, 400);
         }
-
-        return jsonResponse({ success: true, status });
+        const connection = await getPool(isDemo).getConnection();
+        try {
+          await connection.beginTransaction();
+          const [rows] = await connection.execute<PaymentRequestRow[]>("SELECT * FROM payment_requests WHERE id = ? FOR UPDATE", [prId]);
+          const pr = rows[0];
+          if (!pr) { await connection.rollback(); return jsonResponse({ error: "Data pembayaran tidak ditemukan." }, 404); }
+          if (pr.status !== "pending") { await connection.rollback(); return jsonResponse({ error: "Pembayaran sudah diverifikasi." }, 409); }
+          const now = new Date();
+          if (status === "approved") {
+            const [packages] = await connection.execute<PackageRow[]>("SELECT * FROM packages WHERE id = ?", [pr.package_id]);
+            const pkg = packages[0];
+            if (!pkg) { await connection.rollback(); return jsonResponse({ error: "Paket tidak ditemukan." }, 400); }
+            const end = new Date(now.getTime() + Number(pkg.durasi) * (pkg.satuan === "bulan" ? 30 : 1) * 86400000);
+            await connection.execute("UPDATE users SET plan = ?, sub_status_manual = 'active', sub_start = ?, sub_end = ? WHERE id = ?", [pkg.id, now, end, pr.user_id]);
+            await connection.execute("INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'sub_active', 'Langganan Aktif!', ?)", [uid("ntf"), pr.user_id, `Langganan aktif hingga ${end.toISOString().slice(0, 10)}.`]);
+          } else {
+            await connection.execute("INSERT INTO notifications (id, user_id, tag, judul, isi) VALUES (?, ?, 'sub_rejected', 'Pembayaran Ditolak', ?)", [uid("ntf"), pr.user_id, `Alasan: ${adminNote.trim()}`]);
+          }
+          await connection.execute("UPDATE payment_requests SET status = ?, admin_note = ?, verified_at = ? WHERE id = ?", [status, status === "rejected" ? adminNote.trim() : "", now, prId]);
+          await connection.commit();
+          return jsonResponse({ success: true, status });
+        } catch (error) { await connection.rollback(); throw error; }
+        finally { connection.release(); }
       }
 
       // PUT /api/admin/content
       if (pathname === "/api/admin/content" && method === "PUT") {
         const body = await request.json();
         const { tagline, sub, tentang, wa, aboutTitle, about, visi, misi, email, faq } = body;
+        for (const value of [tagline, sub, tentang, wa, aboutTitle, about, visi, misi, email]) {
+          if (value !== undefined && typeof value !== "string") return jsonResponse({ error: "Konten tidak valid." }, 400);
+        }
+        if (faq !== undefined && (!Array.isArray(faq) || faq.some((f: any) => !f || typeof f.q !== "string" || !f.q.trim() || typeof f.a !== "string" || !f.a.trim()))) return jsonResponse({ error: "FAQ tidak valid." }, 400);
 
         await query(
           `UPDATE site_content SET 
@@ -1105,11 +1131,27 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
              email = COALESCE(?, email),
              faq = COALESCE(?, faq)
            WHERE id = 'default'`,
-          [tagline, sub, tentang, wa, aboutTitle, about, visi, misi, email, faq ? JSON.stringify(faq) : null],
+          [tagline ?? null, sub ?? null, tentang ?? null, wa ?? null, aboutTitle ?? null, about ?? null, visi ?? null, misi ?? null, email ?? null, faq ? JSON.stringify(faq) : null],
           isDemo
         );
 
         return jsonResponse({ success: true });
+      }
+
+      if ((pathname === "/api/admin/packages" && method === "POST") || (pathname.startsWith("/api/admin/packages/") && method === "PUT")) {
+        const body = await request.clone().json();
+        const creating = method === "POST";
+        if ((creating || body.nama !== undefined) && (typeof body.nama !== "string" || !body.nama.trim())) return jsonResponse({ error: "Nama paket wajib diisi." }, 400);
+        for (const [key, minimum] of [["harga", 0], ["durasi", 1], ["batas", 0]] as const) {
+          if ((creating || body[key] !== undefined) && (typeof body[key] !== "number" || !Number.isFinite(body[key]) || body[key] < minimum || (key !== "harga" && !Number.isInteger(body[key])))) return jsonResponse({ error: "Nilai paket tidak valid." }, 400);
+        }
+        if (body.satuan !== undefined && !["hari", "bulan"].includes(body.satuan)) return jsonResponse({ error: "Satuan tidak valid." }, 400);
+        if ((creating || body.fitur !== undefined) && (!Array.isArray(body.fitur) || !body.fitur.length || body.fitur.some((f: unknown) => typeof f !== "string" || !f.trim()))) return jsonResponse({ error: "Fitur wajib diisi." }, 400);
+        if (body.aktif !== undefined && typeof body.aktif !== "boolean") return jsonResponse({ error: "Status paket tidak valid." }, 400);
+        if (!creating) {
+          const rows = await query<PackageRow[]>("SELECT * FROM packages WHERE id = ?", [pathname.slice("/api/admin/packages/".length)], isDemo);
+          if (!rows.length) return jsonResponse({ error: "Paket tidak ditemukan." }, 404);
+        }
       }
 
       // POST /api/admin/packages & PUT /api/admin/packages/:id
@@ -1143,7 +1185,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
              fitur = COALESCE(?, fitur),
              aktif = COALESCE(?, aktif)
            WHERE id = ?`,
-          [nama, harga !== undefined ? Number(harga) : null, durasi !== undefined ? Number(durasi) : null, satuan, batas !== undefined ? Number(batas) : null, fitur ? JSON.stringify(fitur) : null, aktif !== undefined ? Boolean(aktif) : null, pkgId],
+          [nama ?? null, harga !== undefined ? Number(harga) : null, durasi !== undefined ? Number(durasi) : null, satuan ?? null, batas !== undefined ? Number(batas) : null, fitur ? JSON.stringify(fitur) : null, aktif !== undefined ? Boolean(aktif) : null, pkgId],
           isDemo
         );
 

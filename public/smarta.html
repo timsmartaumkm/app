@@ -2670,10 +2670,10 @@
     /** Menjaga struktur data tetap konsisten walau DB lama tersimpan di browser. */
     function migrateDB() {
       DB.content = Object.assign({}, DEFAULT_CONTENT, DB.content || {});
-      if (!Array.isArray(DB.content.faq) || DB.content.faq.length === 0) {
+      if (!Array.isArray(DB.content.faq)) {
         DB.content.faq = JSON.parse(JSON.stringify(DEFAULT_FAQ)); // FAQ tidak boleh kosong
       }
-      if (!Array.isArray(DB.packages) || DB.packages.length === 0) {
+      if (!Array.isArray(DB.packages) || DB.packages.length === 0 && !isAdmin(currentUser())) {
         DB.packages = JSON.parse(JSON.stringify(DEFAULT_PACKAGES));
       }
       if (!Array.isArray(DB.paymentRequests)) DB.paymentRequests = [];
@@ -3004,12 +3004,12 @@
       }
     };
 
-    async function bootstrapApp() {
+    async function bootstrapApp(strict = false) {
       try {
         const data = await API.get("/api/bootstrap");
         if (data) {
           if (data.content) DB.content = Object.assign({}, DEFAULT_CONTENT, data.content);
-          if (Array.isArray(data.packages) && data.packages.length > 0) DB.packages = data.packages;
+          if (Array.isArray(data.packages)) DB.packages = data.packages;
           if (data.user) {
             DB.session = { userId: data.user.id, at: Date.now() };
             DB.users = [data.user];
@@ -3027,6 +3027,7 @@
           }
         }
       } catch (e) {
+        if (strict) throw e;
         console.warn("Bootstrap fallback to local cache:", e);
       }
       migrateDB();
@@ -4070,11 +4071,12 @@
       const pesan = waPesanLangganan(p);
       const link = waLink(pesan);
       if (!link) { toast("Nomor WhatsApp admin belum diatur.", "error"); return false; }
+      let payment;
       try {
-        await API.post("/api/payments", { packageId: p.id, amount: p.harga, method: "WhatsApp (Manual)" });
-      } catch (e) { }
+        payment = await API.post("/api/payments", { packageId: p.id, amount: p.harga, method: "WhatsApp (Manual)" });
+      } catch (e) { toast(e.message, "error"); return false; }
       DB.paymentRequests.unshift({
-        id: uid("pay"), userId: u.id, packageId: p.id, amount: p.harga,
+        id: payment.paymentRequest.id, userId: u.id, packageId: p.id, amount: p.harga,
         method: "WhatsApp (Manual)", proof: null, submittedAt: new Date().toISOString(),
         status: "pending", adminNote: "", verifiedAt: null
       });
@@ -4099,10 +4101,10 @@
     function approvePayment(id) {
       const req = DB.paymentRequests.find(r => r.id === id); if (!req) return;
       const u = DB.users.find(x => x.id === req.userId);
-      confirmDialog("Setujui pembayaran ini?", (u ? u.nama : "Pengguna") + " akan mendapatkan langganan aktif selama 6 bulan sejak hari ini.", async () => {
+      confirmDialog("Setujui pembayaran ini?", (u ? u.nama : "Pengguna") + " akan mendapatkan langganan aktif sesuai durasi paket sejak hari ini.", async () => {
         try {
           await API.put("/api/admin/payments/" + id + "/verify", { status: "approved" });
-        } catch (e) { }
+        } catch (e) { toast(e.message, "error"); return; }
         req.status = "approved"; req.verifiedAt = new Date().toISOString(); req.adminNote = "";
         if (u) activatePaidSub(u, req);
         save(); toast("Pembayaran disetujui. Langganan aktif."); go("adminPembayaran");
@@ -4123,7 +4125,7 @@
       const req = DB.paymentRequests.find(r => r.id === id); if (!req) return false;
       try {
         await API.put("/api/admin/payments/" + id + "/verify", { status: "rejected", adminNote: note });
-      } catch (e) { }
+      } catch (e) { toast(e.message, "error"); return false; }
       req.status = "rejected"; req.adminNote = note; req.verifiedAt = new Date().toISOString();
       const u = DB.users.find(x => x.id === req.userId);
       if (u) {
@@ -4295,6 +4297,7 @@
     /* ================= ADMIN ================= */
     function allUsers() { return DB.users.filter(u => u.role !== "admin"); }
     function userStats(u) {
+      if (u.txCount !== undefined) return { count: u.txCount, masuk: u.income || 0, keluar: u.expense || 0, laba: (u.income || 0) - (u.expense || 0) };
       const tx = DB.transactions.filter(t => t.userId === u.id);
       const t = totals(tx);
       return { count: tx.length, masuk: t.masuk, keluar: t.keluar, laba: t.masuk - t.keluar };
@@ -4330,7 +4333,7 @@
         const recent = us.slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 6);
         return `<p class="page-sub">Ringkasan pengguna, langganan, dan aktivitas SMARTA UMKM.</p>
   <div class="cards4">
-    <div class="stat"><div class="lb">${ic("users", "ic ic-sm")}Total Pengguna</div><div class="vl">${us.length}</div><div class="sub">${DB.transactions.length} transaksi tercatat</div></div>
+    <div class="stat"><div class="lb">${ic("users", "ic ic-sm")}Total Pengguna</div><div class="vl">${us.length}</div><div class="sub">${us.reduce((n, u) => n + userStats(u).count, 0)} transaksi tercatat</div></div>
     <div class="stat"><div class="lb">${ic("card", "ic ic-sm")}Langganan Aktif</div><div class="vl pos">${active}</div><div class="sub">${trial} sedang uji coba</div></div>
     <div class="stat"><div class="lb">${ic("bell", "ic ic-sm")}Expired</div><div class="vl neg">${expired}</div><div class="sub">Perlu ditindaklanjuti</div></div>
     <div class="stat"><div class="lb">${ic("chart", "ic ic-sm")}Estimasi Pendapatan</div><div class="vl">${rp(revenue)}</div><div class="sub">Dari langganan aktif</div></div>
@@ -4408,27 +4411,32 @@
       ${["trial", "active", "expired"].map(s => `<option value="${s}" ${subStatus(u) === s ? "selected" : ""}>${statusLabel(s)}</option>`).join("")}</select></div>
     <div class="field"><label for="as_pkg">Paket</label><select class="input" id="as_pkg">
       ${DB.packages.map(p => `<option value="${p.id}" ${u.plan === p.id ? "selected" : ""}>${esc(p.nama)}</option>`).join("")}</select></div>
+    <div class="field"><label><input type="checkbox" id="as_aktif" ${u.aktif ? "checked" : ""}> Akun aktif</label></div>
     <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
       <button class="btn btn-green" onclick="adminSaveStatus('${id}')">Simpan</button></div>`);
     }
-    function adminSaveStatus(id) {
-      const u = DB.users.find(x => x.id === id), st = val("as_status"), pkg = val("as_pkg");
-      u.plan = pkg;
-      if (st === "active") { u.subStatusManual = "active"; u.subEnd = addDays(new Date(), 180).toISOString(); }
-      else if (st === "expired") { u.subStatusManual = "expired"; u.subEnd = null; }
-      else { u.subStatusManual = null; u.subEnd = null; u.trialEnd = addDays(new Date(), TRIAL_DAYS).toISOString(); }
-      save(); closeModal(); toast("Status " + u.nama + " diubah menjadi " + statusLabel(st) + "."); go("adminUsers"); return true;
+    async function adminRequest(path, method, body) {
+      try { await API.request(path, { method, body: body === undefined ? undefined : JSON.stringify(body) }); return true; }
+      catch (e) { toast(e.message || "Perubahan gagal disimpan.", "error"); return false; }
+    }
+    async function refreshAdmin(page) {
+      try { await bootstrapApp(true); closeModal(); go(page); }
+      catch (e) { toast("Perubahan tersimpan, tetapi data gagal dimuat ulang. Muat ulang halaman.", "error"); }
+    }
+    async function adminSaveStatus(id) {
+      if (!await adminRequest("/api/admin/users/" + id + "/status", "PUT", {
+        status: val("as_status"), plan: val("as_pkg"), aktif: document.getElementById("as_aktif").checked
+      })) return false;
+      await refreshAdmin("adminUsers"); return true;
     }
     function adminDelUser(id) {
       const u = DB.users.find(x => x.id === id);
-      confirmDialog("Hapus pengguna?", "Akun " + u.nama + " beserta seluruh transaksinya akan dihapus permanen.", () => {
-        DB.users = DB.users.filter(x => x.id !== id);
-        DB.transactions = DB.transactions.filter(t => t.userId !== id);
-        DB.reports = DB.reports.filter(r => r.userId !== id);
-        delete DB.categories[id]; delete DB.settings[id]; delete DB.notifications[id]; delete DB.businessProfiles[id];
-        save(); toast("Pengguna berhasil dihapus."); go("adminUsers");
+      confirmDialog("Hapus pengguna?", "Akun " + u.nama + " beserta seluruh transaksinya akan dihapus permanen.", async () => {
+        if (!await adminRequest("/api/admin/users/" + id, "DELETE")) return;
+        await refreshAdmin("adminUsers");
       }, "Ya, Hapus");
     }
+
     PAGES.adminPaket = {
       title: "Manajemen Paket", render() {
         return `<p class="page-sub">Atur nama paket, harga, durasi, batas transaksi, dan fitur.</p>
@@ -4464,7 +4472,7 @@
     <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
       <button class="btn btn-green" onclick="pkgSave('${id || ""}')">Simpan</button></div>`);
     }
-    function pkgSave(id) {
+    async function pkgSave(id) {
       const nama = val("pk_nama"), harga = Number(val("pk_harga")), durasi = Number(val("pk_durasi")), batas = Number(val("pk_batas"));
       const fitur = val("pk_fitur").split("\n").map(s => s.trim()).filter(Boolean);
       let ok = setErr("pk_nama", !nama ? "Nama paket wajib diisi." : "");
@@ -4473,11 +4481,15 @@
       ok = setErr("pk_batas", isNaN(batas) || batas < 0 ? "Batas tidak valid." : "") && ok;
       ok = setErr("pk_fitur", fitur.length < 1 ? "Minimal satu fitur." : "") && ok;
       if (!ok) return false;
-      if (id) { Object.assign(DB.packages.find(x => x.id === id), { nama, harga, durasi, satuan: val("pk_satuan"), batas, fitur }); toast("Paket berhasil diperbarui."); }
-      else { DB.packages.push({ id: uid("pkg"), nama, harga, durasi, satuan: val("pk_satuan"), batas, fitur, aktif: true }); toast("Paket berhasil ditambahkan."); }
-      save(); closeModal(); go("adminPaket"); return true;
+      if (!await adminRequest("/api/admin/packages" + (id ? "/" + id : ""), id ? "PUT" : "POST", {
+        nama, harga, durasi, satuan: val("pk_satuan"), batas, fitur
+      })) return false;
+      await refreshAdmin("adminPaket"); return true;
     }
-    function pkgToggle(id) { const p = DB.packages.find(x => x.id === id); p.aktif = !p.aktif; save(); toast("Paket " + p.nama + " " + (p.aktif ? "diaktifkan" : "dinonaktifkan") + "."); go("adminPaket"); }
+    async function pkgToggle(id) {
+      const p = DB.packages.find(x => x.id === id);
+      if (await adminRequest("/api/admin/packages/" + id, "PUT", { aktif: !p.aktif })) await refreshAdmin("adminPaket");
+    }
     PAGES.adminPembayaran = {
       title: "Permintaan Pembayaran", render() {
         const reqs = DB.paymentRequests.slice().sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
@@ -4532,7 +4544,7 @@
   </div>`;
       }
     };
-    function contentSave() {
+    async function contentSave() {
       const tagline = val("ct_tagline"), sub = val("ct_sub"), tentang = val("ct_tentang"), email = val("ct_email"), wa = val("ct_wa");
       let ok = setErr("ct_tagline", !tagline ? "Tagline wajib diisi." : "");
       ok = setErr("ct_sub", !sub ? "Subjudul wajib diisi." : "") && ok;
@@ -4540,11 +4552,12 @@
       ok = setErr("ct_email", !isEmail(email) ? "Format email tidak valid." : "") && ok;
       ok = setErr("ct_wa", !/^[0-9+\-\s()]{8,20}$/.test(wa) ? "Nomor WhatsApp tidak valid." : "") && ok;
       if (!ok) return false;
-      Object.assign(DB.content, { tagline, sub, tentang, email, wa }); save(); toast("Konten landing page berhasil disimpan."); return true;
+      if (!await adminRequest("/api/admin/content", "PUT", { tagline, sub, tentang, email, wa })) return false;
+      await refreshAdmin("adminKonten"); return true;
     }
     function contentReset() {
-      confirmDialog("Kembalikan konten default?", "Seluruh teks landing page dan FAQ dikembalikan ke pengaturan awal.", () => {
-        DB.content = JSON.parse(JSON.stringify(DEFAULT_CONTENT)); save(); toast("Konten dikembalikan ke default.", "info"); go("adminKonten");
+      confirmDialog("Kembalikan konten default?", "Seluruh teks landing page dan FAQ dikembalikan ke pengaturan awal.", async () => {
+        if (await adminRequest("/api/admin/content", "PUT", DEFAULT_CONTENT)) await refreshAdmin("adminKonten");
       }, "Ya, Kembalikan");
     }
     function faqForm(i) {
@@ -4557,17 +4570,20 @@
     <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Batal</button>
       <button class="btn btn-green" onclick="faqSave(${i === undefined ? "-1" : i})">Simpan</button></div>`);
     }
-    function faqSave(i) {
+    async function faqSave(i) {
       const q = val("fq_q"), a = val("fq_a");
       let ok = setErr("fq_q", !q ? "Pertanyaan wajib diisi." : "");
       ok = setErr("fq_a", !a ? "Jawaban wajib diisi." : "") && ok;
       if (!ok) return false;
-      if (i < 0) DB.content.faq.push({ q, a }); else DB.content.faq[i] = { q, a };
-      save(); closeModal(); toast("FAQ berhasil disimpan."); go("adminKonten"); return true;
+      const faq = DB.content.faq.slice();
+      if (i < 0) faq.push({ q, a }); else faq[i] = { q, a };
+      if (!await adminRequest("/api/admin/content", "PUT", { faq })) return false;
+      await refreshAdmin("adminKonten"); return true;
     }
     function faqDelete(i) {
-      confirmDialog("Hapus FAQ ini?", DB.content.faq[i].q, () => {
-        DB.content.faq.splice(i, 1); save(); toast("FAQ dihapus."); go("adminKonten");
+      confirmDialog("Hapus FAQ ini?", DB.content.faq[i].q, async () => {
+        const faq = DB.content.faq.filter((_, index) => index !== i);
+        if (await adminRequest("/api/admin/content", "PUT", { faq })) await refreshAdmin("adminKonten");
       }, "Ya, Hapus");
     }
 
