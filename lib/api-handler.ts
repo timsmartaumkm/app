@@ -1,7 +1,15 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { query, initDatabase, getPool } from "./db";
 import { hashPassword, verifyPassword, signToken, getAuthUserFromRequest } from "./auth";
+import {
+  deletePushSubscription,
+  getVapidPublicKey,
+  runDuePushReminders,
+  savePushSubscription,
+  validatePushSubscription,
+} from "./push";
 import type { RowDataPacket } from "mysql2/promise";
 
 function getTargetUploadDir(isDemoUpload: boolean): string {
@@ -190,6 +198,12 @@ function uid(p = "id") {
   return p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+function secretsMatch(actual: string, expected: string) {
+  const actualBuffer = Buffer.from(actual);
+  const expectedBuffer = Buffer.from(expected);
+  return actualBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(actualBuffer, expectedBuffer);
+}
+
 function formatDateString(val: any): string {
   if (!val) return "";
   if (typeof val === "string") return val.slice(0, 10);
@@ -285,6 +299,16 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     // Ensure database initialized for current context
     await initDatabase(isDemo);
+
+    if (pathname === "/api/internal/push-reminders" && method === "POST") {
+      const expectedSecret = process.env["CRON_SECRET"]?.trim();
+      const suppliedSecret = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || "";
+      if (!expectedSecret || !secretsMatch(suppliedSecret, expectedSecret)) {
+        return jsonResponse({ error: "Unauthorized" }, 401);
+      }
+      return jsonResponse(await runDuePushReminders());
+    }
+
     if (authUser) {
       const accounts = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [authUser.userId], isDemo);
       if (!accounts.length || !accounts[0]!.aktif) return jsonResponse({ error: "Akun tidak aktif. Silakan masuk kembali." }, 403);
@@ -912,6 +936,29 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
     /* ----------------------------------------------------
        NOTIFICATIONS ENDPOINTS
        ---------------------------------------------------- */
+    if (pathname === "/api/push/public-key" && method === "GET") {
+      if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const publicKey = getVapidPublicKey();
+      if (!publicKey) return jsonResponse({ error: "Web Push belum dikonfigurasi pada server." }, 503);
+      return jsonResponse({ publicKey });
+    }
+
+    if (pathname === "/api/push/subscriptions" && method === "POST") {
+      if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const subscription = await request.json();
+      if (!validatePushSubscription(subscription)) return jsonResponse({ error: "Data langganan push tidak valid." }, 400);
+      await savePushSubscription(authUser.userId, subscription, request.headers.get("user-agent") || "", isDemo);
+      return jsonResponse({ success: true }, 201);
+    }
+
+    if (pathname === "/api/push/subscriptions" && method === "DELETE") {
+      if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const body = await request.json();
+      if (typeof body?.endpoint !== "string") return jsonResponse({ error: "Endpoint wajib diisi." }, 400);
+      await deletePushSubscription(authUser.userId, body.endpoint, isDemo);
+      return jsonResponse({ success: true });
+    }
+
     if (pathname === "/api/notifications/read-all" && method === "POST") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
       await query("UPDATE notifications SET is_read = TRUE WHERE user_id = ?", [authUser.userId], isDemo);
@@ -1199,6 +1246,7 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
     const errMsg = err?.message || String(err);
     const isConfigOrDbError =
       errMsg.includes("Missing required") ||
+      errMsg.includes("Web Push is not configured") ||
       errMsg.includes("ECONNREFUSED") ||
       errMsg.includes("ER_ACCESS_DENIED_ERROR") ||
       errMsg.includes("ENOTFOUND");

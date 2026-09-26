@@ -237,6 +237,36 @@ export async function initDatabase(isDemo = false): Promise<boolean> {
     `);
 
     await db.execute(`
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id CHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
+        endpoint TEXT NOT NULL,
+        p256dh VARCHAR(512) NOT NULL,
+        auth VARCHAR(512) NOT NULL,
+        user_agent VARCHAR(512),
+        expiration_time DATETIME NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_push_user (user_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS push_deliveries (
+        user_id VARCHAR(64) NOT NULL,
+        notification_type VARCHAR(64) NOT NULL,
+        delivery_date DATE NOT NULL,
+        status ENUM('pending', 'sent') NOT NULL DEFAULT 'pending',
+        sent_at DATETIME NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (user_id, notification_type, delivery_date),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS site_content (
         id VARCHAR(64) PRIMARY KEY,
         tagline TEXT,

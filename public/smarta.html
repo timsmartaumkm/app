@@ -7,6 +7,9 @@
   <title>SMARTA UMKM — Catat Keuangan, Tingkatkan Keuntungan</title>
   <meta name="description"
     content="SMARTA UMKM membantu pemilik usaha dagang & jasa mencatat keuangan, memisahkan keuangan pribadi dari usaha, dan menganalisa laba rugi secara otomatis." />
+  <meta name="theme-color" content="#064D2C" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/logo_200x200.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -3281,17 +3284,132 @@
     function closeSidebar() { document.getElementById("sidebar").classList.remove("open"); document.getElementById("scrim").classList.remove("on"); }
 
     /* ---------- notifications ---------- */
-    function pushReminder() {
+    const OS_NOTIFICATION_KEY = "smarta_os_reminder_date";
+    let notificationWorker = null;
+    let reminderTimer = null;
+    let osNotificationPending = false;
+    let pushSubscriptionActive = false;
+
+    function wibNow() {
+      const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+      }).formatToParts(new Date()).filter(p => p.type !== "literal").map(p => [p.type, p.value]));
+      return { date: parts.year + "-" + parts.month + "-" + parts.day, time: parts.hour + ":" + parts.minute };
+    }
+
+    async function registerNotificationWorker() {
+      if (!("serviceWorker" in navigator) || !window.isSecureContext) return null;
+      try {
+        await navigator.serviceWorker.register("/notification-sw.js");
+        notificationWorker = await navigator.serviceWorker.ready;
+        pushSubscriptionActive = Boolean(await notificationWorker.pushManager?.getSubscription());
+        return notificationWorker;
+      } catch (e) {
+        console.warn("Service worker registration failed:", e);
+        return null;
+      }
+    }
+
+    function osNotificationStatus() {
+      if (!("Notification" in window)) return "Tidak didukung browser";
+      if (!window.isSecureContext) return "Memerlukan HTTPS";
+      if (Notification.permission === "granted" && pushSubscriptionActive) return "Web Push aktif";
+      if (Notification.permission === "granted") return "Izin aktif, perangkat belum terhubung";
+      if (Notification.permission === "denied") return "Diblokir browser";
+      return "Belum diaktifkan";
+    }
+
+    async function enableOsNotifications() {
+      if (!("Notification" in window) || !window.isSecureContext) {
+        toast("Notifikasi OS memerlukan browser yang mendukung dan koneksi HTTPS.", "error");
+        return false;
+      }
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        toast(permission === "denied" ? "Izin notifikasi diblokir. Ubah izin melalui pengaturan browser." : "Izin notifikasi belum diberikan.", "error");
+        go("setelan"); return false;
+      }
+      try {
+        const registration = await registerNotificationWorker();
+        if (!registration?.pushManager) throw new Error("Browser ini tidak mendukung Web Push.");
+        const { publicKey } = await API.get("/api/push/public-key");
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey)
+          });
+        }
+        await API.post("/api/push/subscriptions", subscription.toJSON());
+        pushSubscriptionActive = true;
+      } catch (e) {
+        toast(e.message || "Perangkat gagal didaftarkan untuk Web Push.", "error");
+        go("setelan"); return false;
+      }
+      toast("Web Push berhasil diaktifkan pada perangkat ini.");
+      go("setelan");
+      pushReminder();
+      return true;
+    }
+
+    function urlBase64ToUint8Array(value) {
+      const padding = "=".repeat((4 - value.length % 4) % 4);
+      const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+      const raw = atob(base64);
+      return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+    }
+
+    async function disableOsNotifications() {
+      try {
+        const registration = notificationWorker || await registerNotificationWorker();
+        const subscription = await registration?.pushManager?.getSubscription();
+        if (subscription) {
+          await API.request("/api/push/subscriptions", {
+            method: "DELETE", body: JSON.stringify({ endpoint: subscription.endpoint })
+          });
+          await subscription.unsubscribe();
+        }
+        pushSubscriptionActive = false;
+        toast("Web Push dinonaktifkan pada perangkat ini.", "info");
+        go("setelan"); return true;
+      } catch (e) {
+        toast(e.message || "Web Push gagal dinonaktifkan.", "error"); return false;
+      }
+    }
+
+    async function showOsNotification(title, body, tag) {
+      if (!("Notification" in window) || Notification.permission !== "granted") return false;
+      try {
+        const registration = notificationWorker || await registerNotificationWorker();
+        if (registration) await registration.showNotification(title, { body, tag, icon: "/logo_200x200.png", badge: "/logo_200x200.png" });
+        else new Notification(title, { body, tag, icon: "/logo_200x200.png" });
+        return true;
+      } catch (e) {
+        console.warn("OS notification failed:", e);
+        return false;
+      }
+    }
+
+    async function pushReminder() {
       const u = currentUser(); if (!u || isAdmin(u)) return;
       const list = myNotifs();
-      const today = todayISO();
+      const clock = wibNow(), today = clock.date;
       const s = mySettings();
       const hasToday = myTx().some(t => t.tanggal === today);
-      if (s.reminderOn && !hasToday && !list.some(n => n.tag === "reminder_" + today)) {
-        list.unshift({
-          id: uid("ntf"), tag: "reminder_" + today, judul: "Pengingat pencatatan",
-          isi: "Anda belum mencatat transaksi hari ini. Pengingat harian aktif pukul " + s.reminderTime + " WIB.", ts: Date.now(), read: false
-        });
+      const reminderDue = s.reminderOn && clock.time >= s.reminderTime && !hasToday;
+      if (reminderDue) {
+        const title = "Pengingat pencatatan";
+        const body = "Anda belum mencatat transaksi hari ini. Pengingat harian aktif pukul " + s.reminderTime + " WIB.";
+        if (!list.some(n => n.tag === "reminder_" + today)) {
+          list.unshift({ id: uid("ntf"), tag: "reminder_" + today, judul: title, isi: body, ts: Date.now(), read: false });
+        }
+        const osNotificationKey = OS_NOTIFICATION_KEY + "_" + u.id;
+        if (!pushSubscriptionActive && !osNotificationPending && localStorage.getItem(osNotificationKey) !== today) {
+          osNotificationPending = true;
+          if (await showOsNotification(title, body, "smarta-daily-reminder-" + today)) localStorage.setItem(osNotificationKey, today);
+          osNotificationPending = false;
+        }
       }
       const left = trialLeft(u);
       if (subStatus(u) === "trial" && left <= 5 && !list.some(n => n.tag === "trial_" + left)) {
@@ -3301,6 +3419,12 @@
         list.unshift({ id: uid("ntf"), tag: "expired", judul: "Masa uji coba telah berakhir", isi: "Berlangganan untuk melanjutkan pencatatan tanpa batas.", ts: Date.now(), read: false });
       }
       save(); paintNotifDot();
+    }
+    function startReminderScheduler() {
+      if (reminderTimer) clearInterval(reminderTimer);
+      reminderTimer = setInterval(pushReminder, 30000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) pushReminder(); });
+      window.addEventListener("focus", pushReminder);
     }
     function paintNotifDot() {
       const n = myNotifs().filter(x => !x.read).length;
@@ -4185,6 +4309,8 @@
             ${["18:00", "19:00", "20:00", "21:00", "22:00"].map(t => `<option ${s.reminderTime === t ? "selected" : ""}>${t} WIB</option>`).join("")}</select></div>
         <div class="kv"><div><b>Notifikasi Laporan Bulanan</b><small>Beri tahu saat laporan bulan lalu bisa diunduh</small></div>
           <button class="switch ${s.monthlyReportNotif ? "on" : ""}" onclick="toggleSetting('monthlyReportNotif')" aria-label="Notifikasi laporan bulanan"></button></div>
+        <div class="kv"><div><b>Notifikasi OS</b><small>${esc(osNotificationStatus())}</small></div>
+          <button class="btn btn-outline btn-sm" onclick="${pushSubscriptionActive ? "disableOsNotifications()" : "enableOsNotifications()"}">${pushSubscriptionActive ? "Nonaktifkan" : "Aktifkan"}</button></div>
       </div></div>
     <div class="card"><h3>Akun</h3>
       <div class="mt8">
@@ -4209,8 +4335,29 @@
     <p class="muted" style="font-size:13.5px;margin:6px 0 0">Buku Panduan penggunaan SMARTA UMKM dalam satu file PDF.</p></div>`;
       }
     };
-    function toggleSetting(k) { const s = mySettings(); s[k] = !s[k]; save(); toast("Pengaturan diperbarui.", "info"); go("setelan"); }
-    function setReminderTime(v) { mySettings().reminderTime = v.replace(" WIB", ""); save(); toast("Waktu pengingat diubah ke " + v + "."); }
+    async function persistSettings(previous) {
+      const s = mySettings();
+      try {
+        await API.put("/api/settings", s);
+        save(); return true;
+      } catch (e) {
+        Object.assign(s, previous); save();
+        toast(e.message || "Pengaturan gagal disimpan.", "error");
+        go("setelan"); return false;
+      }
+    }
+    async function toggleSetting(k) {
+      const s = mySettings(), previous = { ...s };
+      s[k] = !s[k];
+      if (await persistSettings(previous)) {
+        toast("Pengaturan diperbarui.", "info"); go("setelan"); pushReminder();
+      }
+    }
+    async function setReminderTime(v) {
+      const s = mySettings(), previous = { ...s };
+      s.reminderTime = v.replace(" WIB", "");
+      if (await persistSettings(previous)) { toast("Waktu pengingat diubah ke " + v + "."); pushReminder(); }
+    }
     function bizForm() {
       const p = myProfile();
       modal(`<h3>Edit Data Usaha</h3>
@@ -4623,6 +4770,8 @@
     async function boot() {
       load();
       await bootstrapApp();
+      registerNotificationWorker();
+      startReminderScheduler();
       renderLanding();
       if (currentUser()) { enterApp(); } else { showLanding(); }
       document.addEventListener("keydown", e => { if (e.key === "Escape") { closeModal(); closeSidebar(); } });

@@ -7,6 +7,25 @@
 >
 > Validation: `node scripts/test-admin.mjs` runs mocked API regression checks and frontend failure checks without connecting to a database. Live database/browser acceptance testing is still required.
 
+> **Browser/OS notifications:** Web Push is implemented with VAPID, per-device subscriptions, a service worker, and a cron-protected reminder endpoint. The existing page timer remains as a fallback on devices that have not subscribed. HTTPS (or localhost) and browser permission are required.
+
+## Web Push deployment
+
+1. Run `npm run push:keys` once. Add the resulting `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` to the Hostinger application environment. Keep this key pair stable; replacing it requires every device to subscribe again.
+2. Generate a long random `CRON_SECRET` and add it to the Hostinger environment. Do not put it in source control or a URL query string.
+3. Deploy and restart the application. `initDatabase()` automatically creates `push_subscriptions` and `push_deliveries`.
+4. In hPanel, create a Custom cron job every five minutes. Replace the domain and secret below with the production values:
+
+```sh
+curl --fail --silent --show-error --request POST --header "Authorization: Bearer YOUR_CRON_SECRET" https://YOUR_DOMAIN/api/internal/push-reminders
+```
+
+The endpoint evaluates reminder times in `Asia/Jakarta`, ignores users who already recorded a transaction that day, removes expired browser subscriptions, and deduplicates each user's daily reminder. It returns counters for checked users, successful sends, failures, and expired subscriptions. Concurrent cron calls are serialized with a MySQL advisory lock.
+
+Users subscribe or unsubscribe the current device from **Setelan > Notifikasi Pengingat > Notifikasi OS**. iPhone and iPad users must first install the site with **Add to Home Screen**; `public/manifest.webmanifest` provides the required standalone web-app metadata.
+
+Validation: `npm run test:push`, `node scripts/test-admin.mjs`, `tsc --noEmit`, and `npm run build`. The mocked push test does not contact a real browser push service, so a production-device acceptance test is still required after the environment variables are configured.
+
 # SMARTA UMKM — MVP HANDOFF DOCUMENTATION
 
 > **Production handoff note**

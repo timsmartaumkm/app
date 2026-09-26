@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "SMARTA UMKM",
+  "short_name": "SMARTA",
+  "description": "Pencatatan keuangan sederhana untuk UMKM Indonesia.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F7F0",
+  "theme_color": "#064D2C",
+  "icons": [
+    {
+      "src": "/logo_200x200.png",
+      "sizes": "200x200",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

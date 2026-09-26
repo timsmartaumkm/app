@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import vm from 'node:vm';
 import ts from 'typescript';
 
 const source = fs.readFileSync(new URL('../lib/api-handler.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-let role = 'admin', writes = [], paymentStatus = 'pending', rolledBack = false, committed = false;
+let role = 'admin', writes = [], paymentStatus = 'pending', rolledBack = false, committed = false, cronRuns = 0;
 const user = { id: 'user', role: 'user', aktif: true, plan: 'pkg' };
 const pkg = { id: 'pkg', durasi: 2, satuan: 'hari' };
 const query = async (sql, args) => {
@@ -28,12 +29,23 @@ vm.runInNewContext(compiled, { exports: module.exports, module, Request, Respons
   require(name) {
     if (name === './db') return { query, initDatabase: async () => true, getPool: () => ({ getConnection: async () => connection }) };
     if (name === './auth') return { getAuthUserFromRequest: () => ({ userId: 'admin', role }) };
+    if (name === './push') return {
+      deletePushSubscription: async () => {}, getVapidPublicKey: () => 'public-key',
+      runDuePushReminders: async () => { cronRuns++; return { sent: 0 }; }, savePushSubscription: async () => {},
+      validatePushSubscription: () => true,
+    };
     if (name === 'node:fs') return fs;
+    if (name === 'node:crypto') return { default: crypto };
     if (name === 'node:path') return {};
     throw Error(name);
   }
 });
-const request = (path, method, body) => module.exports.handleApiRequest(new Request('http://localhost' + path, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }));
+const request = (path, method, body, headers = {}) => module.exports.handleApiRequest(new Request('http://localhost' + path, { method, headers: { 'Content-Type': 'application/json', ...headers }, body: body === undefined ? undefined : JSON.stringify(body) }));
+process.env.CRON_SECRET = 'cron-test-secret';
+assert.equal((await request('/api/internal/push-reminders', 'POST')).status, 401);
+assert.equal(cronRuns, 0);
+assert.equal((await request('/api/internal/push-reminders', 'POST', undefined, { Authorization: 'Bearer cron-test-secret' })).status, 200);
+assert.equal(cronRuns, 1);
 role = 'user';
 assert.equal((await request('/api/admin/users/user', 'DELETE')).status, 403);
 assert.equal(writes.length, 0);
