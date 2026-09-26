@@ -4112,8 +4112,14 @@
           : pend.status === "rejected"
             ? `<div class="card mt16" style="border-left:4px solid var(--red)"><b style="font-size:14px">Pengajuan pembayaran ditolak.</b>
        <p class="muted" style="font-size:13.5px;margin:6px 0 0">${pend.adminNote ? "Alasan admin: " + esc(pend.adminNote) : "Admin tidak menyertakan alasan."} Anda dapat mengajukan ulang.</p></div>`
-            : `<div class="card mt16" style="border-left:4px solid var(--green)"><b style="font-size:14px">Langganan aktif.</b>
-       <p class="muted" style="font-size:13.5px;margin:6px 0 0">${esc(pkgName(pend.packageId))} • Mulai ${fmtDate(String(u.subStart || pend.verifiedAt || "").slice(0, 10))} • Berakhir ${fmtDate(String(u.subEnd || "").slice(0, 10))} • Sisa ${Math.max(0, daysBetween(new Date(), u.subEnd || new Date().toISOString()))} hari</p></div>`;
+            : st === "active"
+              ? `<div class="card mt16" style="border-left:4px solid var(--green)"><b style="font-size:14px">Langganan aktif.</b>
+       <p class="muted" style="font-size:13.5px;margin:6px 0 0">${esc(pkgName(pend.packageId))} • Mulai ${fmtDate(String(u.subStart || pend.verifiedAt || "").slice(0, 10))} • Berakhir ${fmtDate(String(u.subEnd || "").slice(0, 10))} • Sisa ${Math.max(0, daysBetween(new Date(), u.subEnd || new Date().toISOString()))} hari</p></div>`
+              : u.subStatusManual === "cancelled"
+                ? `<div class="card mt16" style="border-left:4px solid var(--muted)"><b style="font-size:14px">Langganan telah dibatalkan.</b>
+       <p class="muted" style="font-size:13.5px;margin:6px 0 0">Status akun kembali mengikuti masa uji coba. Riwayat pembayaran tetap tersimpan.</p></div>`
+                : `<div class="card mt16" style="border-left:4px solid var(--muted)"><b style="font-size:14px">Langganan telah berakhir.</b>
+       <p class="muted" style="font-size:13.5px;margin:6px 0 0">Silakan pilih paket untuk melanjutkan langganan.</p></div>`;
         return `<p class="page-sub">Status langganan, masa berlaku, dan pilihan paket SMARTA UMKM.</p>${banner}
   <div class="cards3">
     <div class="stat"><div class="lb">${ic("card", "ic ic-sm")}Status Langganan</div>
@@ -4266,9 +4272,14 @@
     <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Tutup</button></div>`);
     }
     function cancelSub() {
-      confirmDialog("Batalkan langganan?", "Status akan kembali mengikuti masa uji coba Anda.", () => {
-        const u = currentUser(); u.subStatusManual = null; u.subEnd = null; u.subStart = null; u.plan = "pkg_trial"; save();
-        toast("Langganan dibatalkan.", "info"); go("paket");
+      confirmDialog("Batalkan langganan?", "Langganan berbayar akan langsung dihentikan dan status kembali mengikuti masa uji coba Anda.", async () => {
+        try {
+          await API.del("/api/subscription");
+          await bootstrapApp(true);
+          toast("Langganan berhasil dibatalkan.", "info"); go("paket");
+        } catch (e) {
+          toast(e.message || "Langganan gagal dibatalkan.", "error");
+        }
       }, "Ya, Batalkan");
     }
 

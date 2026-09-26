@@ -10,7 +10,7 @@ import {
   savePushSubscription,
   validatePushSubscription,
 } from "./push";
-import type { RowDataPacket } from "mysql2/promise";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 function getTargetUploadDir(isDemoUpload: boolean): string {
   if (isDemoUpload) {
@@ -957,6 +957,39 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       if (typeof body?.endpoint !== "string") return jsonResponse({ error: "Endpoint wajib diisi." }, 400);
       await deletePushSubscription(authUser.userId, body.endpoint, isDemo);
       return jsonResponse({ success: true });
+    }
+
+    if (pathname === "/api/subscription" && method === "DELETE") {
+      if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      if (authUser.role === "admin") return jsonResponse({ error: "Akun administrator tidak memiliki langganan pengguna." }, 403);
+
+      const connection = await getPool(isDemo).getConnection();
+      try {
+        await connection.beginTransaction();
+        const [result] = await connection.execute<ResultSetHeader>(
+          `UPDATE users
+           SET plan = 'pkg_trial', sub_status_manual = 'cancelled', sub_start = NULL, sub_end = NULL
+           WHERE id = ? AND sub_status_manual = 'active' AND sub_end > CURRENT_TIMESTAMP`,
+          [authUser.userId]
+        );
+        if (result.affectedRows !== 1) {
+          await connection.rollback();
+          return jsonResponse({ error: "Tidak ada langganan aktif yang dapat dibatalkan." }, 409);
+        }
+        await connection.execute(
+          `INSERT INTO notifications (id, user_id, tag, judul, isi)
+           VALUES (?, ?, 'subscription_cancelled', 'Langganan dibatalkan',
+             'Langganan berbayar telah dibatalkan. Status akun kembali mengikuti masa uji coba.')`,
+          [uid("ntf"), authUser.userId]
+        );
+        await connection.commit();
+        return jsonResponse({ success: true });
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
     }
 
     if (pathname === "/api/notifications/read-all" && method === "POST") {
