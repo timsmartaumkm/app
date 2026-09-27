@@ -11,6 +11,7 @@ interface DueUserRow extends RowDataPacket {
 }
 
 interface PushSubscriptionRow extends RowDataPacket {
+  user_id?: string;
   endpoint: string;
   p256dh: string;
   auth: string;
@@ -96,6 +97,46 @@ export async function sendTestPush(userId: string, isDemo: boolean) {
         result.removed += 1;
       } else {
         console.error("Web Push test delivery failed:", error?.statusCode || error?.message || error);
+        result.failed += 1;
+      }
+    }
+  }
+  return result;
+}
+
+export async function sendBroadcastTestPush() {
+  configureWebPush();
+  const subscriptions = await query<PushSubscriptionRow[]>(
+    "SELECT user_id, endpoint, p256dh, auth FROM push_subscriptions",
+    [],
+    false
+  );
+  const result = {
+    users: new Set(subscriptions.map(subscription => subscription.user_id)).size,
+    subscriptions: subscriptions.length,
+    sent: 0,
+    failed: 0,
+    removed: 0,
+  };
+  const payload = JSON.stringify({
+    title: "Tes notifikasi SMARTA UMKM",
+    body: "Broadcast Web Push berhasil terhubung ke perangkat Anda.",
+    tag: `smarta-broadcast-test-${Date.now()}`,
+    url: "/",
+  });
+  for (const subscription of subscriptions) {
+    try {
+      await webpush.sendNotification({
+        endpoint: subscription.endpoint,
+        keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+      } as PushSubscription, payload, { TTL: 300, urgency: "high" });
+      result.sent += 1;
+    } catch (error: any) {
+      if (error?.statusCode === 404 || error?.statusCode === 410) {
+        await query<ResultSetHeader>("DELETE FROM push_subscriptions WHERE endpoint = ?", [subscription.endpoint], false);
+        result.removed += 1;
+      } else {
+        console.error("Web Push broadcast test failed:", error?.statusCode || error?.message || error);
         result.failed += 1;
       }
     }

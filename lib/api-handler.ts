@@ -7,6 +7,7 @@ import {
   deletePushSubscription,
   getVapidPublicKey,
   runDuePushReminders,
+  sendBroadcastTestPush,
   sendTestPush,
   savePushSubscription,
   validatePushSubscription,
@@ -308,6 +309,15 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
         return jsonResponse({ error: "Unauthorized" }, 401);
       }
       return jsonResponse(await runDuePushReminders());
+    }
+
+    if (pathname === "/api/internal/push-test" && method === "POST") {
+      const expectedSecret = process.env["CRON_SECRET"]?.trim();
+      const suppliedSecret = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() || "";
+      if (!expectedSecret || !secretsMatch(suppliedSecret, expectedSecret)) {
+        return jsonResponse({ error: "Unauthorized" }, 401);
+      }
+      return jsonResponse(await sendBroadcastTestPush());
     }
 
     if (authUser) {

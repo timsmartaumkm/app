@@ -26,6 +26,14 @@ The endpoint evaluates reminder times in `Asia/Jakarta`, ignores users who alrea
 
 `users` counts newly claimed reminders; a later cron call on the same date reports them under `alreadyProcessed`. This is expected daily deduplication. Users can run an immediate, non-deduplicated delivery check from **Setelan > Notifikasi OS > Kirim Tes**, backed by authenticated `POST /api/push/test`.
 
+To send a non-deduplicated test notification to every production subscription, call the internal broadcast endpoint with the same `CRON_SECRET` used by the reminder job:
+
+```sh
+curl --fail --show-error --request POST --header "Authorization: Bearer YOUR_CRON_SECRET" https://YOUR_DOMAIN/api/internal/push-test
+```
+
+The response reports distinct users, total subscriptions, successful sends, failures, and expired subscriptions removed. This endpoint intentionally uses a fixed test message and never targets the demo database.
+
 Users subscribe or unsubscribe the current device from **Setelan > Notifikasi Pengingat > Notifikasi OS**. iPhone and iPad users must first install the site with **Add to Home Screen**; `public/manifest.webmanifest` provides the required standalone web-app metadata.
 
 Validation: `npm run test:push`, `node scripts/test-admin.mjs`, `tsc --noEmit`, and `npm run build`. The mocked push test does not contact a real browser push service, so a production-device acceptance test is still required after the environment variables are configured.

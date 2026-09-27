@@ -36,8 +36,8 @@ const webpush = {
   },
 };
 const subscriptions = [
-  { endpoint: "https://push.example/ok", p256dh: "key", auth: "auth" },
-  { endpoint: "https://push.example/gone", p256dh: "key", auth: "auth" },
+  { user_id: "user-1", endpoint: "https://push.example/ok", p256dh: "key", auth: "auth" },
+  { user_id: "user-2", endpoint: "https://push.example/gone", p256dh: "key", auth: "auth" },
 ];
 const module = { exports: {} };
 vm.runInNewContext(compiled, {
@@ -46,7 +46,7 @@ vm.runInNewContext(compiled, {
     if (name === "node:crypto") return { createHash: () => ({ update() { return this; }, digest: () => "hash" }), randomUUID: () => "notification-id" };
     if (name === "web-push") return webpush;
     if (name === "./db") return {
-      query: async sql => sql.includes("SELECT endpoint") ? subscriptions : { affectedRows: 1 },
+      query: async sql => sql.includes("FROM push_subscriptions") && sql.startsWith("SELECT") ? subscriptions : { affectedRows: 1 },
       getPool: () => ({ getConnection: async () => connection }),
     };
     throw Error(name);
@@ -62,6 +62,12 @@ assert.equal(module.exports.validatePushSubscription({ endpoint: "https://push.e
 const testDelivery = await module.exports.sendTestPush("user-1", false);
 assert.equal(testDelivery.sent, 1);
 assert.equal(testDelivery.removed, 1);
+sent.length = 0;
+const broadcast = await module.exports.sendBroadcastTestPush();
+assert.equal(broadcast.users, 2);
+assert.equal(broadcast.subscriptions, 2);
+assert.equal(broadcast.sent, 1);
+assert.equal(broadcast.removed, 1);
 sent.length = 0;
 const first = await module.exports.runDuePushReminders();
 assert.equal(first.users, 1);

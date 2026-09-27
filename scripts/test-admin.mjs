@@ -32,6 +32,7 @@ vm.runInNewContext(compiled, { exports: module.exports, module, Request, Respons
     if (name === './push') return {
       deletePushSubscription: async () => {}, getVapidPublicKey: () => 'public-key',
       runDuePushReminders: async () => { cronRuns++; return { sent: 0 }; }, savePushSubscription: async () => {},
+      sendBroadcastTestPush: async () => ({ users: 1, subscriptions: 1, sent: 1, failed: 0, removed: 0 }),
       sendTestPush: async () => ({ subscriptions: 1, sent: 1, failed: 0, removed: 0 }),
       validatePushSubscription: () => true,
     };
@@ -47,6 +48,8 @@ assert.equal((await request('/api/internal/push-reminders', 'POST')).status, 401
 assert.equal(cronRuns, 0);
 assert.equal((await request('/api/internal/push-reminders', 'POST', undefined, { Authorization: 'Bearer cron-test-secret' })).status, 200);
 assert.equal(cronRuns, 1);
+assert.equal((await request('/api/internal/push-test', 'POST')).status, 401);
+assert.equal((await request('/api/internal/push-test', 'POST', undefined, { Authorization: 'Bearer cron-test-secret' })).status, 200);
 role = 'user';
 assert.equal((await request('/api/admin/users/user', 'DELETE')).status, 403);
 assert.equal(writes.length, 0);
