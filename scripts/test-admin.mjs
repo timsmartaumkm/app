@@ -62,6 +62,12 @@ assert.equal((await request('/api/admin/users/user/status', 'PUT', { status: 'ac
 let update = writes.at(-1);
 assert.equal(update.args[1], false);
 assert.equal(update.args[4] - update.args[3], 2 * 86400000);
+assert.doesNotMatch(update.sql, /\?\s*=\s*'/);
+assert.equal((await request('/api/admin/users/user/status', 'PUT', { status: 'trial', plan: 'pkg', aktif: true })).status, 200);
+update = writes.at(-1);
+assert.equal(update.args[2], null);
+assert.ok(update.args[5]);
+assert.equal(update.args[6] - update.args[5], 30 * 86400000);
 assert.equal((await request('/api/admin/users/user', 'DELETE')).status, 200);
 assert.match(writes.at(-1).sql, /DELETE FROM users/);
 assert.equal((await request('/api/admin/packages/pkg', 'PUT', { aktif: false })).status, 200);

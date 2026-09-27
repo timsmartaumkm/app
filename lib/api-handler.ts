@@ -1140,11 +1140,12 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
           const pkg = packages[0]!;
           const now = new Date();
           const end = new Date(now.getTime() + Number(pkg.durasi) * (pkg.satuan === "bulan" ? 30 : 1) * 86400000);
+          const isTrial = status === "trial";
           await query(`UPDATE users SET plan = ?, aktif = ?, sub_status_manual = ?, sub_start = ?, sub_end = ?,
-            trial_start = IF(? = 'trial', ?, trial_start), trial_end = IF(? = 'trial', ?, trial_end) WHERE id = ?`,
-            [pkg.id, aktif ?? Boolean(rows[0]!.aktif), status === "trial" ? null : status,
+            trial_start = COALESCE(?, trial_start), trial_end = COALESCE(?, trial_end) WHERE id = ?`,
+            [pkg.id, aktif ?? Boolean(rows[0]!.aktif), isTrial ? null : status,
              status === "active" ? now : null, status === "active" ? end : null,
-             status, now, status, new Date(now.getTime() + 30 * 86400000), userId], isDemo);
+             isTrial ? now : null, isTrial ? new Date(now.getTime() + 30 * 86400000) : null, userId], isDemo);
         } else if (aktif !== undefined) {
           await query("UPDATE users SET aktif = ? WHERE id = ?", [aktif, userId], isDemo);
         } else return jsonResponse({ error: "Perubahan wajib diisi." }, 400);

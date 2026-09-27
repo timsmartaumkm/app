@@ -5,6 +5,7 @@
 >
 > Payment verification uses a database transaction, accepts only pending requests, and activates the selected package for its configured duration (months are 30 days). Rejections require a reason. Dashboard user transaction totals use backend aggregates.
 > User subscription cancellation now calls `DELETE /api/subscription`, immediately ends the active paid period, restores the trial package/status calculation, records an in-app notification, and preserves the approved payment as financial history.
+> Admin subscription status changes avoid parameter-to-literal SQL comparisons so they work when Hostinger's connection and table use different `utf8mb4` collations.
 >
 > Validation: `node scripts/test-admin.mjs` runs mocked API regression checks and frontend failure checks without connecting to a database. Live database/browser acceptance testing is still required.
 
