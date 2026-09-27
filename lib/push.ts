@@ -69,6 +69,40 @@ export async function deletePushSubscription(userId: string, endpoint: string, i
   await query<ResultSetHeader>("DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?", [userId, endpoint], isDemo);
 }
 
+export async function sendTestPush(userId: string, isDemo: boolean) {
+  configureWebPush();
+  const subscriptions = await query<PushSubscriptionRow[]>(
+    "SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = ?",
+    [userId],
+    isDemo
+  );
+  const result = { subscriptions: subscriptions.length, sent: 0, failed: 0, removed: 0 };
+  const payload = JSON.stringify({
+    title: "Tes notifikasi SMARTA UMKM",
+    body: "Web Push berhasil terhubung ke perangkat ini.",
+    tag: `smarta-push-test-${Date.now()}`,
+    url: "/",
+  });
+  for (const subscription of subscriptions) {
+    try {
+      await webpush.sendNotification({
+        endpoint: subscription.endpoint,
+        keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+      } as PushSubscription, payload, { TTL: 300, urgency: "high" });
+      result.sent += 1;
+    } catch (error: any) {
+      if (error?.statusCode === 404 || error?.statusCode === 410) {
+        await query<ResultSetHeader>("DELETE FROM push_subscriptions WHERE endpoint = ?", [subscription.endpoint], isDemo);
+        result.removed += 1;
+      } else {
+        console.error("Web Push test delivery failed:", error?.statusCode || error?.message || error);
+        result.failed += 1;
+      }
+    }
+  }
+  return result;
+}
+
 function jakartaClock(now = new Date()) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit",
@@ -85,7 +119,7 @@ export async function runDuePushReminders() {
   try {
     const [lockRows] = await connection.execute<RowDataPacket[]>("SELECT GET_LOCK('smarta_push_reminders', 0) AS acquired");
     locked = Number(lockRows[0]?.["acquired"]) === 1;
-    if (!locked) return { skipped: true, reason: "Another reminder job is running", users: 0, sent: 0, failed: 0, removed: 0 };
+    if (!locked) return { skipped: true, reason: "Another reminder job is running", candidates: 0, users: 0, alreadyProcessed: 0, sent: 0, failed: 0, removed: 0 };
 
     await connection.execute(
       "DELETE FROM push_deliveries WHERE status = 'pending' AND updated_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 15 MINUTE)"
@@ -103,14 +137,17 @@ export async function runDuePushReminders() {
       [clock.time, clock.date]
     );
 
-    const result = { skipped: false, users: 0, sent: 0, failed: 0, removed: 0 };
+    const result = { skipped: false, candidates: users.length, users: 0, alreadyProcessed: 0, sent: 0, failed: 0, removed: 0 };
     for (const user of users) {
       const [claim] = await connection.execute<ResultSetHeader>(
         `INSERT IGNORE INTO push_deliveries (user_id, notification_type, delivery_date, status)
          VALUES (?, ?, ?, 'pending')`,
         [user.id, REMINDER_TYPE, clock.date]
       );
-      if (claim.affectedRows !== 1) continue;
+      if (claim.affectedRows !== 1) {
+        result.alreadyProcessed += 1;
+        continue;
+      }
       result.users += 1;
 
       const [subscriptions] = await connection.execute<PushSubscriptionRow[]>(

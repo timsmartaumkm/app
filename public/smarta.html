@@ -3378,6 +3378,16 @@
       }
     }
 
+    async function testPushNotification() {
+      try {
+        const result = await API.post("/api/push/test", {});
+        toast("Tes Web Push dikirim ke " + result.sent + " perangkat.");
+        return true;
+      } catch (e) {
+        toast(e.message || "Tes Web Push gagal dikirim.", "error"); return false;
+      }
+    }
+
     async function showOsNotification(title, body, tag) {
       if (!("Notification" in window) || Notification.permission !== "granted") return false;
       try {
@@ -4321,7 +4331,8 @@
         <div class="kv"><div><b>Notifikasi Laporan Bulanan</b><small>Beri tahu saat laporan bulan lalu bisa diunduh</small></div>
           <button class="switch ${s.monthlyReportNotif ? "on" : ""}" onclick="toggleSetting('monthlyReportNotif')" aria-label="Notifikasi laporan bulanan"></button></div>
         <div class="kv"><div><b>Notifikasi OS</b><small>${esc(osNotificationStatus())}</small></div>
-          <button class="btn btn-outline btn-sm" onclick="${pushSubscriptionActive ? "disableOsNotifications()" : "enableOsNotifications()"}">${pushSubscriptionActive ? "Nonaktifkan" : "Aktifkan"}</button></div>
+          <div class="row" style="gap:6px">${pushSubscriptionActive ? `<button class="btn btn-outline btn-sm" onclick="testPushNotification()">Kirim Tes</button>` : ""}
+          <button class="btn btn-outline btn-sm" onclick="${pushSubscriptionActive ? "disableOsNotifications()" : "enableOsNotifications()"}">${pushSubscriptionActive ? "Nonaktifkan" : "Aktifkan"}</button></div></div>
       </div></div>
     <div class="card"><h3>Akun</h3>
       <div class="mt8">

@@ -7,6 +7,7 @@ import {
   deletePushSubscription,
   getVapidPublicKey,
   runDuePushReminders,
+  sendTestPush,
   savePushSubscription,
   validatePushSubscription,
 } from "./push";
@@ -957,6 +958,15 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       if (typeof body?.endpoint !== "string") return jsonResponse({ error: "Endpoint wajib diisi." }, 400);
       await deletePushSubscription(authUser.userId, body.endpoint, isDemo);
       return jsonResponse({ success: true });
+    }
+
+    if (pathname === "/api/push/test" && method === "POST") {
+      if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      if (authUser.role === "admin") return jsonResponse({ error: "Gunakan akun pengguna untuk menguji Web Push." }, 403);
+      const result = await sendTestPush(authUser.userId, isDemo);
+      if (result.subscriptions === 0) return jsonResponse({ error: "Perangkat belum terdaftar untuk Web Push.", ...result }, 409);
+      if (result.sent === 0) return jsonResponse({ error: "Notifikasi tidak berhasil dikirim.", ...result }, 502);
+      return jsonResponse(result);
     }
 
     if (pathname === "/api/subscription" && method === "DELETE") {

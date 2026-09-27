@@ -32,6 +32,7 @@ vm.runInNewContext(compiled, { exports: module.exports, module, Request, Respons
     if (name === './push') return {
       deletePushSubscription: async () => {}, getVapidPublicKey: () => 'public-key',
       runDuePushReminders: async () => { cronRuns++; return { sent: 0 }; }, savePushSubscription: async () => {},
+      sendTestPush: async () => ({ subscriptions: 1, sent: 1, failed: 0, removed: 0 }),
       validatePushSubscription: () => true,
     };
     if (name === 'node:fs') return fs;
@@ -49,6 +50,7 @@ assert.equal(cronRuns, 1);
 role = 'user';
 assert.equal((await request('/api/admin/users/user', 'DELETE')).status, 403);
 assert.equal(writes.length, 0);
+assert.equal((await request('/api/push/test', 'POST', {})).status, 200);
 committed = false;
 assert.equal((await request('/api/subscription', 'DELETE')).status, 200);
 const cancellation = writes.findLast(w => w.sql.includes("sub_status_manual = 'cancelled'"));
