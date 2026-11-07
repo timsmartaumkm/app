@@ -2820,6 +2820,12 @@
       if (u.subStatusManual === "active" && u.subEnd && new Date(u.subEnd) > new Date()) return "active";
       return trialLeft(u) > 0 ? "trial" : "expired";
     }
+    function hasSubscriptionAccess(u = currentUser()) { return subStatus(u) !== "expired"; }
+    function requireSubscriptionAccess() {
+      if (hasSubscriptionAccess()) return true;
+      toast("Masa uji coba telah berakhir. Berlangganan untuk mengubah data.", "error");
+      return false;
+    }
     function statusLabel(s) { return s === "trial" ? "Uji Coba" : s === "active" ? "Aktif" : "Expired"; }
     function planName(u) { const p = DB.packages.find(x => x.id === u.plan); return p ? p.nama : "—"; }
 
@@ -3041,34 +3047,22 @@
     const DataStore = {
       listTransactions(userId) { return DB.transactions.filter(t => t.userId === userId); },
       async createTransaction(tx) {
-        try {
-          const res = await API.post("/api/transactions", tx);
-          if (res && res.transaction) {
-            const idx = DB.transactions.findIndex(t => t.id === tx.id);
-            if (idx !== -1) DB.transactions.splice(idx, 1);
-            DB.transactions.unshift(res.transaction);
-            save();
-            return res.transaction;
-          }
-        } catch (e) {
-          console.warn("API createTransaction fallback to local:", e);
+        const res = await API.post("/api/transactions", tx);
+        if (res && res.transaction) {
+          const idx = DB.transactions.findIndex(t => t.id === tx.id);
+          if (idx !== -1) DB.transactions.splice(idx, 1);
+          DB.transactions.unshift(res.transaction);
+          save();
+          return res.transaction;
         }
-        DB.transactions.unshift(tx); save(); return tx;
+        throw new Error("Transaksi gagal disimpan.");
       },
       async updateTransaction(id, patch) {
-        try {
-          await API.put("/api/transactions/" + id, patch);
-        } catch (e) {
-          console.warn("API updateTransaction fallback to local:", e);
-        }
+        await API.put("/api/transactions/" + id, patch);
         const t = DB.transactions.find(x => x.id === id); if (t) Object.assign(t, patch); save(); return t;
       },
       async deleteTransaction(id) {
-        try {
-          await API.del("/api/transactions/" + id);
-        } catch (e) {
-          console.warn("API deleteTransaction fallback to local:", e);
-        }
+        await API.del("/api/transactions/" + id);
         DB.transactions = DB.transactions.filter(t => t.id !== id); save();
       },
       exportTransactions(userId) { return this.listTransactions(userId).map(toTransactionDTO); }
@@ -3533,8 +3527,9 @@
     <div class="amt ${t.jenis === "pemasukan" ? "tone-green" : "tone-red"}">${signed(t.nominal, t.jenis)}<small class="muted">${fmtDate(t.tanggal)}</small></div>
     ${withActions ? `<div class="row" style="gap:6px">
       <button class="icon-btn" title="Detail" onclick="txDetail('${t.id}')">${ic("eye", "ic ic-sm")}</button>
+      ${hasSubscriptionAccess() ? `
       <button class="icon-btn" title="Edit" onclick="txEdit('${t.id}')">${ic("edit", "ic ic-sm")}</button>
-      <button class="icon-btn" title="Hapus" onclick="txDelete('${t.id}')">${ic("trash", "ic ic-sm")}</button></div>` : ""}</div>`;
+      <button class="icon-btn" title="Hapus" onclick="txDelete('${t.id}')">${ic("trash", "ic ic-sm")}</button>` : ""}</div>` : ""}</div>`;
     }
     function emptyState(msg, cta) {
       return `<div class="empty">${ic("inbox", "ic")}<p>${esc(msg)}</p>
@@ -3723,6 +3718,10 @@
     async function saveTx(e) {
       if (e) e.preventDefault();
       const u = currentUser();
+      if (!requireSubscriptionAccess()) return false;
+      if (!uiState.editingTx && subStatus(u) === "trial" && myTx().length >= 100) {
+        toast("Batas 100 transaksi masa uji coba tercapai.", "error"); return false;
+      }
       const jenis = val("tx_jenis"), tanggal = val("tx_tanggal"), nominal = val("tx_nominal"),
         kategori = val("tx_kategori"), akun = val("tx_akun"), desk = val("tx_deskripsi");
       let ok = setErr("tx_tanggal", !tanggal ? "Tanggal wajib diisi." : (tanggal > todayISO() ? "Tanggal tidak boleh di masa depan." : ""));
@@ -3745,12 +3744,11 @@
 
       if (uiState.editingTx) {
         const patch = { jenis, tanggal, nominal: num, kategori, akunKeuangan: akun, deskripsi: desk || kategori, bukti: proofUrl || null };
-        await DataStore.updateTransaction(uiState.editingTx, patch);
+        try { await DataStore.updateTransaction(uiState.editingTx, patch); }
+        catch (err) { toast(err.message || "Transaksi gagal diperbarui.", "error"); return false; }
         uiState.editingTx = null; uiState.buktiData = null;
         toast("Transaksi berhasil diperbarui."); go("riwayat"); return true;
       }
-      if (subStatus(u) === "expired") { toast("Masa uji coba telah berakhir. Berlangganan untuk mencatat transaksi baru.", "error"); return false; }
-      if (subStatus(u) === "trial" && myTx().length >= 100) { toast("Batas 100 transaksi masa uji coba tercapai.", "error"); return false; }
 
       const newTx = {
         id: uid("trx"),
@@ -3764,7 +3762,8 @@
         bukti: proofUrl || null,
         createdAt: new Date().toISOString()
       };
-      await DataStore.createTransaction(newTx);
+      try { await DataStore.createTransaction(newTx); }
+      catch (err) { toast(err.message || "Transaksi gagal disimpan.", "error"); return false; }
       uiState.buktiData = null;
       toast("Transaksi berhasil disimpan.");
       uiState.period = ym(tanggal);
@@ -3785,13 +3784,15 @@
     ${t.bukti ? `<div class="mt16"><b style="font-size:13.5px">Bukti Transaksi</b><div class="prev"><img src="${t.bukti}" alt="Bukti transaksi ${esc(t.deskripsi)}"></div></div>`
           : `<p class="muted mt16" style="font-size:13px">Tidak ada foto bukti untuk transaksi ini.</p>`}
     <div class="modal-act"><button class="btn btn-outline" onclick="closeModal()">Tutup</button>
-      <button class="btn btn-green" onclick="closeModal();txEdit('${t.id}')">Edit</button></div>`);
+      ${hasSubscriptionAccess() ? `<button class="btn btn-green" onclick="closeModal();txEdit('${t.id}')">Edit</button>` : ""}</div>`);
     }
-    function txEdit(id) { uiState.editingTx = id; uiState.buktiData = null; go("tambah"); }
+    function txEdit(id) { if (!requireSubscriptionAccess()) return; uiState.editingTx = id; uiState.buktiData = null; go("tambah"); }
     function txDelete(id) {
+      if (!requireSubscriptionAccess()) return;
       const t = myTx().find(x => x.id === id); if (!t) return;
       confirmDialog("Hapus transaksi?", `"${t.deskripsi || t.kategori}" sebesar ${rp(t.nominal)} akan dihapus permanen.`, async () => {
-        await DataStore.deleteTransaction(id);
+        try { await DataStore.deleteTransaction(id); }
+        catch (err) { toast(err.message || "Transaksi gagal dihapus.", "error"); return; }
         toast("Transaksi berhasil dihapus."); go(route);
       }, "Ya, Hapus");
     }
@@ -3883,11 +3884,11 @@
         const block = (jenis, title) => {
           const rows = cats.filter(c => c.jenis === jenis);
           return `<div class="card"><div class="spread"><h3>${title}</h3>
-      <button class="btn btn-outline btn-sm" onclick="catForm('${jenis}')">+ Tambah</button></div>
+      <button class="btn btn-outline btn-sm" onclick="catForm('${jenis}')" ${hasSubscriptionAccess() ? "" : "disabled"}>+ Tambah</button></div>
       <div class="mt8">${rows.length ? rows.map(c => `<div class="tx"><div class="ti ${jenis === "pemasukan" ? "in" : "out"}">${ic("tag", "ic ic-sm")}</div>
         <div class="grow"><b>${esc(c.nama)}</b><small>${myTx().filter(t => t.kategori === c.nama).length} transaksi menggunakan kategori ini</small></div>
-        <div class="row" style="gap:6px"><button class="icon-btn" title="Edit" onclick="catForm('${jenis}','${c.id}')">${ic("edit", "ic ic-sm")}</button>
-        <button class="icon-btn" title="Hapus" onclick="catDelete('${c.id}')">${ic("trash", "ic ic-sm")}</button></div></div>`).join("")
+        ${hasSubscriptionAccess() ? `<div class="row" style="gap:6px"><button class="icon-btn" title="Edit" onclick="catForm('${jenis}','${c.id}')">${ic("edit", "ic ic-sm")}</button>
+        <button class="icon-btn" title="Hapus" onclick="catDelete('${c.id}')">${ic("trash", "ic ic-sm")}</button></div>` : ""}</div>`).join("")
               : `<div class="empty">Belum ada kategori.</div>`}</div></div>`;
         };
         return `<p class="page-sub">Kelola kategori pemasukan dan pengeluaran sesuai kebutuhan usaha Anda.</p>
@@ -3895,6 +3896,7 @@
       }
     };
     function catForm(jenis, id) {
+      if (!requireSubscriptionAccess()) return;
       const c = id ? myCats().find(x => x.id === id) : null;
       modal(`<h3>${c ? "Edit" : "Tambah"} Kategori ${jenis === "pemasukan" ? "Pemasukan" : "Pengeluaran"}</h3>
     <div class="field mt16"><label for="cat_nama">Nama Kategori</label>
@@ -3905,6 +3907,7 @@
       setTimeout(() => document.getElementById("cat_nama").focus(), 40);
     }
     async function catSave(jenis, id) {
+      if (!requireSubscriptionAccess()) return false;
       const nama = val("cat_nama");
       if (!setErr("cat_nama", !nama ? "Nama kategori wajib diisi." : (nama.length < 3 ? "Minimal 3 karakter." :
         (myCats().some(c => c.nama.toLowerCase() === nama.toLowerCase() && c.id !== id) ? "Kategori sudah ada." : "")))) return false;
@@ -3923,18 +3926,19 @@
             toast("Kategori berhasil ditambahkan.");
             return true;
           }
-        } catch (e) { }
-        DB.categories[u.id].push({ id: uid("cat"), nama, jenis }); toast("Kategori berhasil ditambahkan.");
+        } catch (e) { toast(e.message, "error"); return false; }
       }
       save(); closeModal(); go("kategori"); return true;
     }
     function catDelete(id) {
+      if (!requireSubscriptionAccess()) return;
       const c = myCats().find(x => x.id === id); if (!c) return;
       const used = myTx().filter(t => t.kategori === c.nama).length;
       confirmDialog("Hapus kategori?", used ? `Kategori "${c.nama}" masih digunakan ${used} transaksi. Transaksi tersebut akan dipindah ke kategori "Lainnya".`
         : `Kategori "${c.nama}" akan dihapus.`, async () => {
           const u = currentUser();
-          try { await API.del("/api/categories/" + id); } catch (e) { }
+          try { await API.del("/api/categories/" + id); }
+          catch (e) { toast(e.message, "error"); return; }
           DB.transactions.forEach(t => { if (t.userId === u.id && t.kategori === c.nama) t.kategori = "Lainnya"; });
           DB.categories[u.id] = DB.categories[u.id].filter(x => x.id !== id);
           save(); toast("Kategori berhasil dihapus."); go("kategori");
@@ -3975,8 +3979,8 @@
     <p class="page-sub" style="margin:0">Laporan laba rugi bulanan usaha Anda (transaksi pribadi tidak dihitung).</p>
     <div class="row" style="flex-wrap:wrap">
       <select class="input" style="max-width:180px" onchange="uiState.period=this.value;go('labarugi')">${monthOptions(p)}</select>
-      <button class="btn btn-outline btn-sq" onclick="archiveReport('${p}')" ${archived ? "disabled" : ""}>${ic("folder", "ic ic-sm")}${archived ? "Sudah Diarsipkan" : "Arsipkan"}</button>
-      <button class="btn btn-green btn-sq" onclick="printReport('${p}')">${ic("download", "ic ic-sm")}Download PDF</button>
+      <button class="btn btn-outline btn-sq" onclick="archiveReport('${p}')" ${archived || !hasSubscriptionAccess() ? "disabled" : ""}>${ic("folder", "ic ic-sm")}${archived ? "Sudah Diarsipkan" : "Arsipkan"}</button>
+      <button class="btn btn-green btn-sq" onclick="printReport('${p}')" ${hasSubscriptionAccess() ? "" : "disabled"}>${ic("download", "ic ic-sm")}Download PDF</button>
     </div></div>
   <div class="split">
     <div class="card" style="order:1">
@@ -4004,6 +4008,7 @@
     <p style="margin-top:20px;font-size:11px;color:#555">Dicetak ${fmtDateTime(Date.now())} melalui SMARTA UMKM — smartaumkm@gmail.com</p></div>`;
     }
     function printReport(p) {
+      if (!requireSubscriptionAccess()) return;
       uiState.period = p;
       const holder = document.getElementById("printArea");
       if (holder) holder.innerHTML = printDoc(p);
@@ -4011,6 +4016,7 @@
       setTimeout(() => window.print(), 350);
     }
     function archiveReport(p) {
+      if (!requireSubscriptionAccess()) return;
       const u = currentUser(); const pl = profitLoss(myTx(), p);
       DB.reports.push({
         id: uid("rpt"), userId: u.id, periode: p, pendapatan: pl.totalPendapatan, beban: pl.totalBeban, laba: pl.laba,
@@ -4089,8 +4095,8 @@
         <td style="text-align:right" class="${r.laba >= 0 ? "tone-green" : "tone-red"}"><b>${(r.laba < 0 ? "− " : "") + rp(r.laba)}</b></td>
         <td>${fmtDateTime(r.createdAt)}</td>
         <td><div class="row" style="gap:6px"><button class="btn btn-outline btn-sm" onclick="uiState.period='${r.periode}';go('labarugi')">Buka</button>
-          <button class="btn btn-outline btn-sm" onclick="printReport('${r.periode}')">Cetak / PDF</button>
-          <button class="icon-btn" title="Hapus arsip" onclick="delArsip('${r.id}')">${ic("trash", "ic ic-sm")}</button></div></td></tr>`;
+          <button class="btn btn-outline btn-sm" onclick="printReport('${r.periode}')" ${hasSubscriptionAccess() ? "" : "disabled"}>Cetak / PDF</button>
+          ${hasSubscriptionAccess() ? `<button class="icon-btn" title="Hapus arsip" onclick="delArsip('${r.id}')">${ic("trash", "ic ic-sm")}</button>` : ""}</div></td></tr>`;
         }).join("")}
       </tbody></table></div>` : `<div class="empty">${ic("folder", "ic")}<p>Belum ada laporan diarsipkan. Buka Laporan Laba Rugi lalu klik Arsipkan.</p>
         <button class="btn btn-green btn-sq" onclick="go('labarugi')">Ke Laporan Laba Rugi</button></div>`}</div></div>
@@ -4105,6 +4111,7 @@
       }
     };
     function delArsip(id) {
+      if (!requireSubscriptionAccess()) return;
       confirmDialog("Hapus arsip laporan?", "Data transaksi tidak terhapus, hanya arsip laporannya.", () => {
         DB.reports = DB.reports.filter(r => r.id !== id); save(); toast("Arsip laporan dihapus."); go("arsip");
       }, "Ya, Hapus");

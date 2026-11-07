@@ -6,14 +6,16 @@ import ts from 'typescript';
 
 const source = fs.readFileSync(new URL('../lib/api-handler.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-let role = 'admin', writes = [], paymentStatus = 'pending', rolledBack = false, committed = false, cronRuns = 0;
+let role = 'admin', writes = [], paymentStatus = 'pending', rolledBack = false, committed = false, cronRuns = 0, txCount = 0;
+let trialEnd = new Date(Date.now() - 86400000), subStatusManual = null, subEnd = null;
 const user = { id: 'user', role: 'user', aktif: true, plan: 'pkg' };
 const pkg = { id: 'pkg', durasi: 2, satuan: 'hari' };
 const query = async (sql, args) => {
   if (sql.startsWith('SELECT')) {
+    if (sql.includes('COUNT(*) AS count FROM transactions')) return [{ count: txCount }];
     if (sql.includes('packages')) return [pkg];
     if (sql.includes("role = 'admin'")) return [{ role: 'admin', aktif: true }];
-    return [args[0] === 'admin' ? { role, aktif: true } : user];
+    return [args[0] === 'admin' ? { role, aktif: true, trial_end: trialEnd, sub_status_manual: subStatusManual, sub_end: subEnd } : user];
   }
   writes.push({ sql, args }); return { affectedRows: 1 };
 };
@@ -54,6 +56,22 @@ role = 'user';
 assert.equal((await request('/api/admin/users/user', 'DELETE')).status, 403);
 assert.equal(writes.length, 0);
 assert.equal((await request('/api/push/test', 'POST', {})).status, 200);
+const transaction = { tanggal: '2026-11-07', jenis: 'pemasukan', kategori: 'Penjualan', nominal: 1000 };
+assert.equal((await request('/api/transactions', 'GET')).status, 200);
+assert.equal((await request('/api/transactions', 'POST', transaction)).status, 403);
+assert.equal((await request('/api/transactions/tx', 'PUT', transaction)).status, 403);
+assert.equal((await request('/api/transactions/tx', 'DELETE')).status, 403);
+assert.equal((await request('/api/categories', 'POST', { nama: 'Online', jenis: 'pemasukan' })).status, 403);
+assert.equal((await request('/api/categories/cat', 'DELETE')).status, 403);
+assert.equal((await request('/api/upload', 'POST', { dataUrl: 'data:image/png;base64,AA==' })).status, 403);
+trialEnd = new Date(Date.now() + 86400000);
+txCount = 100;
+assert.equal((await request('/api/transactions', 'POST', transaction)).status, 403);
+txCount = 99;
+assert.equal((await request('/api/transactions', 'POST', transaction)).status, 200);
+trialEnd = new Date(Date.now() - 86400000);
+subStatusManual = 'active'; subEnd = new Date(Date.now() + 86400000);
+assert.equal((await request('/api/categories', 'POST', { nama: 'Online', jenis: 'pemasukan' })).status, 200);
 committed = false;
 assert.equal((await request('/api/subscription', 'DELETE')).status, 200);
 const cancellation = writes.findLast(w => w.sql.includes("sub_status_manual = 'cancelled'"));

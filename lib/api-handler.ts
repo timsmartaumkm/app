@@ -218,6 +218,30 @@ function formatDateString(val: any): string {
   return String(val).slice(0, 10);
 }
 
+type SubscriptionAccess = "active" | "trial" | "expired";
+
+function getSubscriptionAccess(user: UserRow, now = new Date()): SubscriptionAccess {
+  if (user.role === "admin") return "active";
+  if (
+    user.sub_status_manual === "active" &&
+    user.sub_end &&
+    new Date(user.sub_end).getTime() > now.getTime()
+  ) {
+    return "active";
+  }
+  return new Date(user.trial_end).getTime() > now.getTime() ? "trial" : "expired";
+}
+
+function subscriptionRequiredResponse() {
+  return jsonResponse(
+    {
+      error: "Masa uji coba telah berakhir. Berlangganan untuk mengubah data.",
+      code: "SUBSCRIPTION_REQUIRED",
+    },
+    403,
+  );
+}
+
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -320,10 +344,17 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
       return jsonResponse(await sendBroadcastTestPush());
     }
 
+    let authenticatedAccount: UserRow | undefined;
     if (authUser) {
       const accounts = await query<UserRow[]>("SELECT * FROM users WHERE id = ?", [authUser.userId], isDemo);
       if (!accounts.length || !accounts[0]!.aktif) return jsonResponse({ error: "Akun tidak aktif. Silakan masuk kembali." }, 403);
+      authenticatedAccount = accounts[0]!;
     }
+
+    const requireSubscriptionAccess = () =>
+      authenticatedAccount && getSubscriptionAccess(authenticatedAccount) !== "expired"
+        ? null
+        : subscriptionRequiredResponse();
 
     /* ----------------------------------------------------
        AUTH ENDPOINTS
@@ -759,11 +790,27 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     if (pathname === "/api/transactions" && method === "POST") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const accessError = requireSubscriptionAccess();
+      if (accessError) return accessError;
       const body = await request.json();
       const { tanggal, jenis, kategori, nominal, akunKeuangan, deskripsi, bukti } = body;
 
       if (!tanggal || !jenis || !kategori || !nominal) {
         return jsonResponse({ error: "Data transaksi tidak lengkap." }, 400);
+      }
+
+      if (authenticatedAccount && getSubscriptionAccess(authenticatedAccount) === "trial") {
+        const countRows = await query<(RowDataPacket & { count: number | string })[]>(
+          "SELECT COUNT(*) AS count FROM transactions WHERE user_id = ?",
+          [authUser.userId],
+          isDemo,
+        );
+        if (Number(countRows[0]?.count || 0) >= 100) {
+          return jsonResponse(
+            { error: "Batas 100 transaksi masa uji coba tercapai.", code: "TRIAL_LIMIT_REACHED" },
+            403,
+          );
+        }
       }
 
       const txId = uid("trx");
@@ -803,6 +850,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     if (pathname.startsWith("/api/transactions/") && method === "PUT") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const accessError = requireSubscriptionAccess();
+      if (accessError) return accessError;
       const txId = pathname.replace("/api/transactions/", "");
       const body = await request.json();
       const { tanggal, jenis, kategori, nominal, akunKeuangan, deskripsi, bukti } = body;
@@ -838,6 +887,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     if (pathname.startsWith("/api/transactions/") && method === "DELETE") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const accessError = requireSubscriptionAccess();
+      if (accessError) return accessError;
       const txId = pathname.replace("/api/transactions/", "");
 
       // 1. Fetch existing transaction to find attached proof (bukti) file
@@ -868,6 +919,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     if (pathname === "/api/categories" && method === "POST") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const accessError = requireSubscriptionAccess();
+      if (accessError) return accessError;
       const body = await request.json();
       const { nama, jenis } = body;
 
@@ -886,6 +939,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     if (pathname.startsWith("/api/categories/") && method === "DELETE") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const accessError = requireSubscriptionAccess();
+      if (accessError) return accessError;
       const catId = pathname.replace("/api/categories/", "");
       await query("DELETE FROM categories WHERE id = ? AND user_id = ?", [catId, authUser.userId], isDemo);
       return jsonResponse({ success: true });
@@ -1029,6 +1084,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
        ---------------------------------------------------- */
     if (pathname === "/api/upload" && method === "POST") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const accessError = requireSubscriptionAccess();
+      if (accessError) return accessError;
 
       const isDemoUpload = Boolean(authUser?.isDemo);
       const targetDir = getTargetUploadDir(isDemoUpload);
@@ -1088,6 +1145,8 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
     if (pathname === "/api/upload" && method === "DELETE") {
       if (!authUser) return jsonResponse({ error: "Unauthorized" }, 401);
+      const accessError = requireSubscriptionAccess();
+      if (accessError) return accessError;
       const body = await request.json().catch(() => ({}));
       const { url, fileName } = body;
       const target = url || fileName;
